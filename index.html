@@ -167,9 +167,9 @@ h2:first-child{margin-top:4px}
     <div class="f"><label for="url">Supabase project URL</label>
       <input id="url" placeholder="https://xxxx.supabase.co" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
     <div class="f"><label for="key">Anon / publishable key</label>
-      <input id="key" placeholder="eyJhbGci..." autocapitalize="off" autocorrect="off" spellcheck="false"></div>
+      <input id="key" placeholder="sb_publishable_...  or  eyJhbGci..." autocapitalize="off" autocorrect="off" spellcheck="false"></div>
     <button class="btn" id="saveCfg">Connect</button>
-    <p class="note">Both are safe to store here. The anon key is meant for browsers — row-level security is what protects your data, not the key. Never paste your <em>service_role</em> key into anything.</p>
+    <p class="note">Find both in Supabase → Settings → API. Both are safe here: the publishable/anon key is <em>designed</em> to sit in a browser — row-level security is what protects your data, not the key. Never paste the <em>secret</em> or <em>service_role</em> key into anything.</p>
     <div id="cfgErr"></div>
   </div>
 
@@ -314,12 +314,19 @@ function boot(){
 $('#saveCfg').onclick = () => {
   const u = $('#url').value.trim().replace(/\/+$/,''), k = $('#key').value.trim();
   if(!/^https:\/\/.+\.supabase\.co$/.test(u)) return err('#cfgErr','URL should look like https://xxxx.supabase.co');
-  if(k.length < 40) return err('#cfgErr','That key looks too short.');
+  // Supabase issues two generations of key. New projects: sb_publishable_… (safe)
+  // and sb_secret_… (must never reach a browser). Older projects: anon and
+  // service_role JWTs. Accept the safe one from either generation, refuse the other.
+  if(k.startsWith('sb_secret_'))
+    return err('#cfgErr','That is your secret key — it bypasses row-level security and must never go in a browser. Use the publishable key (sb_publishable_…).');
   if(k.split('.').length===3){
-    try{ const p=JSON.parse(atob(k.split('.')[1]));
+    try{ const p=JSON.parse(atob(k.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
       if(p.role==='service_role') return err('#cfgErr','That is your service_role key — it bypasses row-level security and must never go in a browser. Use the anon / publishable key.');
     }catch(_){}
   }
+  const looksRight = k.startsWith('sb_publishable_') || k.split('.').length===3;
+  if(!looksRight || k.length < 30)
+    return err('#cfgErr','That does not look like a Supabase key. It should start with sb_publishable_ or eyJ.');
   localStorage.setItem(LS.url,u); localStorage.setItem(LS.key,k);
   $('#stepCfg').classList.add('hide'); boot();
 };

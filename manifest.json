@@ -2,7 +2,7 @@
   "name": "Khaata",
   "short_name": "Khaata",
   "description": "Personal finance ledger",
-  "start_url": "./index.html",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
