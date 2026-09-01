@@ -1,0 +1,6 @@
+# Never commit real ledger data
+mock.json
+*.local
+.DS_Store
+.vercel
+node_modules/
