@@ -308,6 +308,50 @@ h2:first-child{margin-top:2px}
 .mode .tick{color:var(--accent);font-weight:800;font-size:17px;opacity:0}
 .mode[aria-checked=true] .tick{opacity:1}
 
+
+/* ---- category combo: type to filter, + to create ---- */
+.combo{position:relative}
+.combo .crow{display:flex;gap:8px;align-items:stretch}
+.combo .cin{flex:1;min-width:0}
+.combo .cadd{
+  flex:none;width:48px;border-radius:11px;background:var(--surface-2);
+  border:1.5px solid var(--line-2);font-size:21px;font-weight:700;color:var(--muted);
+  display:grid;place-items:center;transition:all .15s;
+}
+.combo .cadd.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.combo .cadd:disabled{opacity:.4}
+.copts{
+  margin-top:8px;max-height:230px;overflow-y:auto;border:1.5px solid var(--line);
+  border-radius:12px;background:var(--surface);
+}
+.copts:empty{display:none}
+.copt{
+  display:block;width:100%;text-align:left;padding:11px 13px;font-size:14px;font-weight:600;
+  border-bottom:1px solid var(--line);
+}
+.copt:last-child{border-bottom:0}
+.copt small{display:block;color:var(--faint);font-weight:500;font-size:11.5px;margin-top:1px}
+.copt:active,.copt.hl{background:var(--accent-soft)}
+.copt.new{color:var(--accent)}
+.cnew{padding:11px 13px;border-top:1.5px dashed var(--line-2);background:var(--surface-2)}
+.cnew .lbl{font-size:12px;color:var(--muted);font-weight:700;margin-bottom:7px}
+.cpick{width:100%;font-size:14px;padding:9px 11px}
+.csel{
+  display:flex;align-items:center;gap:8px;background:var(--accent-soft);color:var(--accent);
+  border-radius:10px;padding:9px 12px;font-weight:700;font-size:14px;margin-top:8px;
+}
+.csel button{margin-left:auto;color:var(--accent);font-weight:800;font-size:16px}
+
+/* ---- split ---- */
+.part{border:1.5px solid var(--line);border-radius:13px;padding:13px;margin-bottom:10px;background:var(--surface)}
+.part .ph{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px}
+.part .pn{font-size:12px;font-weight:800;color:var(--faint);letter-spacing:.05em;text-transform:uppercase}
+.part .rm{color:var(--expense);font-weight:800;font-size:15px}
+.rem{display:flex;justify-content:space-between;padding:12px 14px;border-radius:12px;
+  background:var(--surface-2);font-weight:700;font-size:14.5px;margin:12px 0}
+.rem.bad{background:var(--warn-bg);color:var(--warn-ink)}
+.rem.ok{background:color-mix(in srgb,var(--income) 13%,transparent);color:var(--income)}
+
 </style>
 </head>
 <body>
@@ -379,7 +423,7 @@ h2:first-child{margin-top:2px}
           <div class="f"><label for="aDir">Direction</label><select id="aDir"><option value="debit">Money out</option><option value="credit">Money in</option></select></div>
           <div class="f"><label for="aDate">Date</label><input id="aDate" type="date"></div>
           <div class="f"><label for="aAcct">Account</label><select id="aAcct"></select></div>
-          <div class="f"><label for="aCat">Category</label><select id="aCat"></select></div>
+          <div class="f"><label>Category</label><div id="aCat"></div></div>
           <div class="f"><label for="aMerch">Merchant / description</label><input id="aMerch" placeholder="e.g. chai at the office"></div>
           <div class="f"><label class="chk" for="aXfer">
             <input type="checkbox" id="aXfer"> Transfer — keep out of spending totals</label></div>
@@ -454,6 +498,210 @@ const monthName = k => { const [y,m]=k.split('-'); return new Date(y,m-1,1).toLo
 
 function err(el,msg){ const n=$(el); n.innerHTML = msg ? `<div class="err">${esc(msg)}</div>` : ''; }
 
+
+
+/* ==================== category combo ====================
+   A plain <select> could not do what Pratham needed: type a category that does
+   not exist yet and have it created inline. This filters as you type and, when
+   nothing matches, offers to create it — under a parent you pick, or top level.
+   Accepts "Parent > Child" typed directly.                                  */
+function leafLabel(c){
+  const p = c.parent_id ? S.catById[c.parent_id] : null;
+  return p ? `${p.name} › ${c.name}` : c.name;
+}
+function mountCombo(host, opts){
+  const kinds = opts.kinds, onChange = opts.onChange;
+  let picked = opts.value || null;
+  host.classList.add('combo');
+  host.innerHTML = `
+    <div class="crow">
+      <input class="cin" type="text" autocomplete="off" autocapitalize="words"
+             placeholder="Type a category, or pick one below">
+      <button class="cadd" type="button" title="Create this category" disabled>+</button>
+    </div>
+    <div class="copts"></div>
+    <div class="csel hide"><span class="t"></span><button type="button" title="Clear">×</button></div>`;
+  const inp=host.querySelector('.cin'), add=host.querySelector('.cadd'),
+        list=host.querySelector('.copts'), sel=host.querySelector('.csel');
+
+  const pool = () => S.cats.filter(c => {
+    const top = c.parent_id ? S.catById[c.parent_id] : c;
+    return top && (!kinds || kinds.includes(top.kind));
+  });
+  function commit(id){
+    picked=id; onChange && onChange(id);
+    if(id){
+      sel.classList.remove('hide');
+      sel.querySelector('.t').textContent = leafLabel(S.catById[id]);
+      inp.value=''; list.innerHTML=''; add.disabled=true; add.classList.remove('on');
+    } else sel.classList.add('hide');
+  }
+  sel.querySelector('button').onclick = () => { commit(null); inp.focus(); };
+
+  let open=false;
+  function render(){
+    const q = inp.value.trim();
+    // keep the list closed until the field is actually in use — otherwise a
+    // two-part split shows two long lists and the fields below fall off-screen
+    if(!open && !q){ list.innerHTML=''; add.disabled=true; add.classList.remove('on'); return; }
+    const ql = q.toLowerCase();
+    const parts = q.split('>').map(x=>x.trim()).filter(Boolean);
+    const hits = pool().filter(c => !ql || leafLabel(c).toLowerCase().includes(ql)
+                                        || c.name.toLowerCase().includes(ql));
+    const exact = pool().find(c => leafLabel(c).toLowerCase()===ql || c.name.toLowerCase()===ql);
+    list.innerHTML = hits.slice(0,40).map(c =>
+      `<button type="button" class="copt" data-id="${c.id}">${esc(c.name)}
+         ${c.parent_id?`<small>in ${esc(S.catById[c.parent_id].name)}</small>`:'<small>top level</small>'}</button>`
+    ).join('');
+
+    if(q && !exact){
+      const childName = parts.length>1 ? parts[1] : q;
+      const parentTyped = parts.length>1 ? parts[0] : null;
+      const tops = S.cats.filter(c=>!c.parent_id && (!kinds||kinds.includes(c.kind)));
+      const guess = parentTyped
+        ? tops.find(t=>t.name.toLowerCase()===parentTyped.toLowerCase())
+        : null;
+      list.insertAdjacentHTML('beforeend', `
+        <div class="cnew">
+          <div class="lbl">Not there yet — create “${esc(childName)}”</div>
+          <select class="cpick">
+            <option value="">As a new top-level category</option>
+            ${tops.map(t=>`<option value="${t.id}"${guess&&guess.id===t.id?' selected':''}>Inside ${esc(t.name)}</option>`).join('')}
+          </select>
+        </div>`);
+      add.disabled=false; add.classList.add('on');
+      add.onclick = async () => {
+        const parentId = host.querySelector('.cpick').value || null;
+        const id = await createCategory(childName, parentId, kinds);
+        if(id) commit(id);
+      };
+    } else { add.disabled=true; add.classList.remove('on'); }
+
+    host.querySelectorAll('.copt').forEach(b => b.onclick = () => commit(b.dataset.id));
+  }
+  inp.addEventListener('input', render);
+  inp.addEventListener('focus', ()=>{ open=true; render(); });
+  inp.addEventListener('blur', ()=>{ setTimeout(()=>{ open=false;
+    if(!inp.value.trim()) render(); }, 180); });   // delay so a click on an option still lands
+  inp.addEventListener('keydown', e => {
+    if(e.key==='Enter'){
+      e.preventDefault();
+      const first=host.querySelector('.copt');
+      if(first) first.click(); else if(!add.disabled) add.click();
+    }
+  });
+  if(picked) commit(picked); else render();
+  return { get: () => picked, set: commit };
+}
+
+async function createCategory(name, parentId, kinds){
+  name = name.trim();
+  if(!name) return null;
+  const kind = parentId ? S.catById[parentId].kind
+                        : (kinds && kinds.length ? kinds[0] : 'expense');
+  const { data:{ user } } = await sb.auth.getUser();
+  const { data, error } = await sb.from('categories')
+    .insert({ user_id:user.id, parent_id:parentId, kind, name, sort_order:500 })
+    .select('id,name,parent_id,kind,sort_order').single();
+  if(error){ alert('Could not create that category: '+error.message); return null; }
+  S.cats.push(data); S.catById[data.id]=data;
+  return data.id;
+}
+
+/* ==================== split a transaction ====================
+   For a charge where only part is really yours. Parts share a split_group and
+   must sum to the original to the paisa — the app will not let you save a split
+   that quietly loses or invents money.                                       */
+function openSplit(t){
+  const parts = [
+    { amount:(+t.amount).toFixed(2), cat:t.category_id, note:'' },
+    { amount:'', cat:null, note:'' }
+  ];
+  function draw(){
+    $('#sheetBody').innerHTML = `
+      <div style="font-weight:800;font-size:19px;letter-spacing:-.02em">Split this charge</div>
+      <div style="color:var(--faint);font-size:13px;margin:3px 0 4px">
+        ${esc(t.merchant_clean||t.merchant_raw||'')} · ${money2(t.amount)}</div>
+      <p class="note" style="margin-bottom:14px">Give each part its own category. The part
+        you expect back can sit under Returns, or be logged against whoever owes you.</p>
+      <div id="partList"></div>
+      <button class="btn sec sm" id="addPart">+ Add another part</button>
+      <div class="rem" id="rem"></div>
+      <button class="btn" id="doSplit">Save split</button>
+      <button class="btn sec" id="cancelSplit" style="margin-top:9px">Cancel</button>
+      <div id="splitErr"></div>`;
+    const host=$('#partList');
+    parts.forEach((pt,i)=>{
+      const el=document.createElement('div'); el.className='part';
+      el.innerHTML=`
+        <div class="ph"><span class="pn">Part ${i+1}</span>
+          ${parts.length>2?`<button class="rm" data-rm="${i}" type="button">Remove</button>`:''}</div>
+        <div class="f"><label>Amount</label>
+          <input type="number" inputmode="decimal" step="0.01" class="pa" value="${pt.amount}"></div>
+        <div class="f"><label>Category</label><div class="pc"></div></div>
+        <div class="f"><label>Note (optional)</label>
+          <input class="pnote" value="${esc(pt.note)}" placeholder="e.g. Priya's share"></div>`;
+      host.appendChild(el);
+      el.querySelector('.pa').addEventListener('input', e=>{ pt.amount=e.target.value; tally(); });
+      el.querySelector('.pnote').addEventListener('input', e=>{ pt.note=e.target.value; });
+      mountCombo(el.querySelector('.pc'), {
+        kinds: kindsFor(t.direction, t.is_transfer), value: pt.cat,
+        onChange: id => { pt.cat = id; }
+      });
+      const rm=el.querySelector('[data-rm]');
+      if(rm) rm.onclick=()=>{ parts.splice(i,1); draw(); };
+    });
+    $('#addPart').onclick=()=>{ parts.push({amount:'',cat:null,note:''}); draw(); };
+    $('#cancelSplit').onclick=()=>openSheet(t.id);
+    $('#doSplit').onclick=save;
+    tally();
+  }
+  function sum(){ return parts.reduce((a,p)=>a+(parseFloat(p.amount)||0),0); }
+  function tally(){
+    const diff = +(+t.amount - sum()).toFixed(2);
+    const blank = parts.filter(p=>!(parseFloat(p.amount)>0)).length;
+    const el=$('#rem'); if(!el) return;
+    const balanced = Math.abs(diff)<0.005 && !blank;
+    el.className = 'rem ' + (balanced ? 'ok' : 'bad');
+    el.innerHTML = blank
+      ? `<span>Part ${parts.findIndex(p=>!(parseFloat(p.amount)>0))+1} still needs an amount</span><span class="num">${money2(Math.abs(diff))} left</span>`
+      : Math.abs(diff)<0.005
+        ? `<span>Parts add up</span><span class="num">${money2(t.amount)}</span>`
+        : `<span>${diff>0?'Still to allocate':'Over by'}</span><span class="num">${money2(Math.abs(diff))}</span>`;
+    $('#doSplit').disabled = !balanced;
+  }
+  async function save(){
+    err('#splitErr','');
+    const diff = Math.abs(+t.amount - sum());
+    if(diff>=0.005) return err('#splitErr','The parts must add up to '+money2(t.amount)+' exactly.');
+    if(parts.some(p=>!(parseFloat(p.amount)>0))) return err('#splitErr','Every part needs an amount above zero.');
+    const btn=$('#doSplit'); btn.disabled=true; btn.textContent='Saving…';
+    const gid = (crypto.randomUUID ? crypto.randomUUID()
+      : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{
+          const r=Math.random()*16|0; return (c==='x'?r:(r&0x3|0x8)).toString(16);}));
+    const { data:{ user } } = await sb.auth.getUser();
+    const first=parts[0];
+    const up = await sb.from('transactions').update({
+      amount:parseFloat(first.amount), category_id:first.cat||null,
+      notes:first.note||t.notes||null, split_group:gid,
+      status:'confirmed', updated_by:'sheet'
+    }).eq('id', t.id);
+    if(up.error){ btn.disabled=false; btn.textContent='Save split'; return err('#splitErr',up.error.message); }
+    const rest = parts.slice(1).map(p=>({
+      user_id:user.id, txn_date:t.txn_date, amount:parseFloat(p.amount), direction:t.direction,
+      account_id:t.account_id, category_id:p.cat||null,
+      merchant_clean:t.merchant_clean, merchant_raw:t.merchant_raw,
+      notes:p.note||null, is_transfer:t.is_transfer, split_group:gid,
+      source:'manual', status:'confirmed', confidence:1, updated_by:'sheet'
+    }));
+    const ins = await sb.from('transactions').insert(rest);
+    if(ins.error){ btn.disabled=false; btn.textContent='Save split'; return err('#splitErr',ins.error.message); }
+    cheer();
+    toggleSheet(false);
+    await loadAll(); show('ledger');
+  }
+  draw(); toggleSheet(true);
+}
 
 /* ---------------- theme ---------------- */
 const THEMES = {
@@ -589,7 +837,7 @@ async function loadAll(){
     sb.from('categories').select('id,name,parent_id,kind,sort_order').order('sort_order'),
     sb.from('accounts').select('id,name,type,last4,is_active').order('name'),
     sb.from('transactions')
-      .select('id,txn_date,amount,direction,category_id,account_id,merchant_clean,merchant_raw,notes,is_transfer,status,confidence,source')
+      .select('id,txn_date,amount,direction,category_id,account_id,merchant_clean,merchant_raw,notes,is_transfer,status,confidence,source,split_group')
       .order('txn_date',{ascending:false}).limit(2000),
     sb.from('debt_balances').select('*'),
     sb.from('profiles').select('display_name').maybeSingle()
@@ -641,11 +889,13 @@ function catOptions(sel, kinds){
     return `<optgroup label="${esc(t.name)} · ${t.kind}">${o.join('')}</optgroup>`;
   }).join('');
 }
+let addCombo=null;
 function syncAddCats(){
-  const keep = $('#aCat').value;
+  const keep = addCombo ? addCombo.get() : null;
   const kinds = kindsFor($('#aDir').value, $('#aXfer').checked);
-  $('#aCat').innerHTML = `<option value="">— none —</option>` + catOptions(keep, kinds);
-  $('#aCat').value = keep;   // '' if the old pick is no longer valid
+  const stillOk = keep && (()=>{ const c=S.catById[keep];
+    const top=c?(c.parent_id?S.catById[c.parent_id]:c):null; return top && kinds.includes(top.kind); })();
+  addCombo = mountCombo($('#aCat'), {kinds, value: stillOk?keep:null, onChange:()=>{}});
 }
 function catLabel(id){
   const c=S.catById[id]; if(!c) return null;
@@ -711,6 +961,7 @@ function txnRow(t){
       <span class="meta">
         ${t.status==='needs_review'?'<span class="tag rev">review</span>':''}
         ${t.is_transfer?'<span class="tag xf">transfer</span>':''}
+        ${t.split_group?'<span class="tag">part of a split</span>':''}
         ${cat?`<span>${esc(cat)}</span>`:(t.status!=='needs_review'?'<span>Uncategorised</span>':'')}
         ${acct?`<span>· ${esc(acct.name)}</span>`:''}
       </span>
@@ -757,28 +1008,30 @@ function openSheet(id){
     </div>
     ${t.merchant_raw && t.merchant_raw!==t.merchant_clean ? `<div class="f"><label>As the bank wrote it</label>
       <div style="font:12.5px ui-monospace,Menlo,monospace;color:var(--muted);word-break:break-all;background:var(--surface-2);padding:9px;border-radius:8px">${esc(t.merchant_raw)}</div></div>`:''}
-    <div class="f"><label for="eCat">Category</label><select id="eCat"><option value="">— none —</option>${catOptions(t.category_id, kindsFor(t.direction, t.is_transfer))}</select></div>
+    <div class="f"><label>Category</label><div id="eCat"></div></div>
     <div class="f"><label for="eMerch">Merchant</label><input id="eMerch" value="${esc(t.merchant_clean||'')}"></div>
     <div class="f"><label for="eNotes">Notes</label><textarea id="eNotes">${esc(t.notes||'')}</textarea></div>
     <div class="f"><label class="chk" for="eXfer">
       <input type="checkbox" id="eXfer" ${t.is_transfer?'checked':''}> Transfer — keep out of spending totals</label></div>
     <button class="btn" id="eSave">Save</button>
+    <button class="btn sec" id="eSplit" style="margin-top:9px">Split this charge…</button>
     <div class="grid2" style="margin-top:9px">
       <button class="btn sec" id="eIgnore">Ignore</button>
       <button class="btn sec" id="eClose">Cancel</button>
     </div>
     <div id="eErr"></div>`;
   toggleSheet(true);
+  let editCombo = mountCombo($('#eCat'),
+    {kinds: kindsFor(t.direction, t.is_transfer), value: t.category_id, onChange:()=>{}});
   $('#eXfer').addEventListener('change', () => {
-    const keep=$('#eCat').value;
-    $('#eCat').innerHTML = `<option value="">— none —</option>` +
-      catOptions(keep, kindsFor(t.direction, $('#eXfer').checked));
-    $('#eCat').value = keep;
+    editCombo = mountCombo($('#eCat'),
+      {kinds: kindsFor(t.direction, $('#eXfer').checked), value: editCombo.get(), onChange:()=>{}});
   });
+  $('#eSplit').onclick = () => openSplit(t);
   $('#eClose').onclick=()=>toggleSheet(false);
   $('#eIgnore').onclick=()=>saveTxn(id,{status:'ignored'});
   $('#eSave').onclick=()=>saveTxn(id,{
-    category_id: $('#eCat').value||null,
+    category_id: editCombo.get()||null,
     merchant_clean: $('#eMerch').value.trim()||null,
     notes: $('#eNotes').value.trim()||null,
     is_transfer: $('#eXfer').checked,
@@ -817,17 +1070,23 @@ function renderReview(){
       ${g.named.length?`<h2 style="margin:16px 0 0">Matches the name</h2><div class="chips">${g.named.map(x=>`<button class="chip" data-c="${x.id}">${esc(x.label)}</button>`).join('')}</div>`:''}
       ${g.often.length?`<h2 style="margin:16px 0 0">You usually file this account under</h2><div class="chips">${g.often.map(x=>`<button class="chip" data-c="${x.id}">${esc(x.label)}</button>`).join('')}</div>`:''}
       <h2>All categories</h2>
-      <select id="rCat"><option value="">— pick —</option>${catOptions(null, kindsFor(t.direction, t.is_transfer))}</select>
+      <div id="rCat"></div>
       <div class="grid2" style="margin-top:12px">
         <button class="btn" id="rSave">Save</button>
         <button class="btn sec" id="rXfer">It's a transfer</button>
       </div>
-      <button class="btn sec" id="rSkip" style="margin-top:9px">Skip for now</button>
+      <div class="grid2" style="margin-top:9px">
+        <button class="btn sec" id="rSplit">Split…</button>
+        <button class="btn sec" id="rSkip">Skip</button>
+      </div>
       <div id="rErr"></div>
     </div>`;
+  const revCombo = mountCombo($('#rCat'),
+    {kinds: kindsFor(t.direction, t.is_transfer), value:null, onChange:()=>{}});
   $$('#revBox .chip').forEach(c=>c.onclick=()=>reviewSave(t.id,{category_id:c.dataset.c,status:'confirmed'}));
-  $('#rSave').onclick=()=>{ const v=$('#rCat').value; if(!v) return err('#rErr','Pick a category first.');
+  $('#rSave').onclick=()=>{ const v=revCombo.get(); if(!v) return err('#rErr','Pick or create a category first.');
     reviewSave(t.id,{category_id:v,status:'confirmed'}); };
+  $('#rSplit').onclick=()=>{ toggleSheet(true); openSplit(t); };
   $('#rXfer').onclick=()=>reviewSave(t.id,{is_transfer:true,status:'confirmed'});
   $('#rSkip').onclick=()=>{ S.txns.push(S.txns.splice(S.txns.indexOf(t),1)[0]); renderReview(); };
 }
@@ -878,7 +1137,7 @@ $('#aSave').onclick = async () => {
   const { data:{ user } } = await sb.auth.getUser();
   const { error } = await sb.from('transactions').insert({
     user_id:user.id, txn_date:$('#aDate').value, amount:amt, direction:$('#aDir').value,
-    account_id:$('#aAcct').value||null, category_id:$('#aCat').value||null,
+    account_id:$('#aAcct').value||null, category_id:(addCombo&&addCombo.get())||null,
     merchant_clean:$('#aMerch').value.trim()||null, is_transfer:$('#aXfer').checked,
     source:'manual', status:'confirmed', confidence:1, updated_by:'app'
   });
