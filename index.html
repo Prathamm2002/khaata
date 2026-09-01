@@ -9,151 +9,305 @@
 <meta name="apple-mobile-web-app-title" content="Khaata">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Quicksand:wght@500;600;700&display=swap">
 <title>Khaata</title>
 <style>
 :root{
-  --ground:#F7F8FA; --surface:#FFFFFF; --surface-2:#EFF1F5; --surface-3:#E4E8EF;
-  --ink:#12151C; --muted:#5C6472; --faint:#8A93A3; --line:#DFE3EA; --line-2:#C6CDD9;
-  --accent:#3B5BC4; --accent-ink:#FFFFFF; --accent-soft:#E4E9FA;
-  --income:#1F7A4D; --expense:#AC4728; --neutral:#5C6472;
+  --ground:#F4F6FA; --surface:#FFFFFF; --surface-2:#F0F2F7; --surface-3:#E3E7F0;
+  --ink:#0E1119; --muted:#5A6376; --faint:#8B94A8; --line:#E3E7EE; --line-2:#CFD6E4;
+  --accent:#3B5BC4; --accent-ink:#FFFFFF; --accent-soft:#E6EBFB; --accent-dim:#A9BAEE;
+  --income:#1F7A4D; --expense:#AC4728; --neutral:#5A6376;
   --warn-bg:#FBF0D9; --warn-ink:#7A5806;
-  --r:10px; --shadow:0 1px 2px rgba(18,21,28,.06),0 6px 20px -10px rgba(18,21,28,.18);
+  --r:16px; --r-sm:11px;
+  --sh-1:0 1px 2px rgba(14,17,25,.05);
+  --sh-2:0 2px 4px rgba(14,17,25,.04),0 12px 28px -14px rgba(14,17,25,.22);
   --safe-b:env(safe-area-inset-bottom,0px);
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]){
-  --ground:#0F1114; --surface:#171A20; --surface-2:#1F232B; --surface-3:#2A2F39;
-  --ink:#E8EBF0; --muted:#98A1B1; --faint:#6E7787; --line:#272C35; --line-2:#39404C;
-  --accent:#8FA8F3; --accent-ink:#0F1114; --accent-soft:#1D2439;
-  --income:#4FB985; --expense:#DE8560; --neutral:#98A1B1;
-  --warn-bg:#33280F; --warn-ink:#DFB765;
-  --shadow:0 1px 2px rgba(0,0,0,.5),0 6px 20px -10px rgba(0,0,0,.8);
+  --ground:#0B0D12; --surface:#141822; --surface-2:#1C212D; --surface-3:#28303F;
+  --ink:#EAEDF4; --muted:#98A2B8; --faint:#6D778D; --line:#232936; --line-2:#353D4E;
+  --accent:#8FA8F3; --accent-ink:#0B0D12; --accent-soft:#1A2137; --accent-dim:#3D4C77;
+  --income:#4FB985; --expense:#DE8560; --neutral:#98A2B8;
+  --warn-bg:#332811; --warn-ink:#DFB765;
+  --sh-1:0 1px 2px rgba(0,0,0,.4);
+  --sh-2:0 2px 4px rgba(0,0,0,.35),0 12px 28px -14px rgba(0,0,0,.85);
 }}
 :root[data-theme=dark]{
-  --ground:#0F1114; --surface:#171A20; --surface-2:#1F232B; --surface-3:#2A2F39;
-  --ink:#E8EBF0; --muted:#98A1B1; --faint:#6E7787; --line:#272C35; --line-2:#39404C;
-  --accent:#8FA8F3; --accent-ink:#0F1114; --accent-soft:#1D2439;
-  --income:#4FB985; --expense:#DE8560; --neutral:#98A1B1;
-  --warn-bg:#33280F; --warn-ink:#DFB765;
-  --shadow:0 1px 2px rgba(0,0,0,.5),0 6px 20px -10px rgba(0,0,0,.8);
+  --ground:#0B0D12; --surface:#141822; --surface-2:#1C212D; --surface-3:#28303F;
+  --ink:#EAEDF4; --muted:#98A2B8; --faint:#6D778D; --line:#232936; --line-2:#353D4E;
+  --accent:#8FA8F3; --accent-ink:#0B0D12; --accent-soft:#1A2137; --accent-dim:#3D4C77;
+  --income:#4FB985; --expense:#DE8560; --neutral:#98A2B8;
+  --warn-bg:#332811; --warn-ink:#DFB765;
+  --sh-1:0 1px 2px rgba(0,0,0,.4);
+  --sh-2:0 2px 4px rgba(0,0,0,.35),0 12px 28px -14px rgba(0,0,0,.85);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%}
 body{
   background:var(--ground);color:var(--ink);
-  font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-  overscroll-behavior-y:none;
+  font-family:"Plus Jakarta Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  font-size:15px;line-height:1.5;letter-spacing:-.005em;
+  -webkit-font-smoothing:antialiased;overscroll-behavior-y:none;
 }
-.num{font-variant-numeric:tabular-nums}
-button,input,select,textarea{font:inherit;color:inherit}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+button,input,select,textarea{font:inherit;color:inherit;font-family:inherit}
 button{cursor:pointer;border:0;background:none}
-:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:8px}
 .hide{display:none!important}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 
 /* ---------- shell ---------- */
 #app{display:flex;flex-direction:column;height:100%}
 header{
-  position:sticky;top:0;z-index:20;background:var(--surface);
-  border-bottom:1px solid var(--line);padding:10px 14px;
-  padding-top:calc(10px + env(safe-area-inset-top,0px));
-  display:flex;align-items:center;gap:10px;
+  position:sticky;top:0;z-index:20;
+  background:color-mix(in srgb,var(--surface) 88%,transparent);
+  backdrop-filter:saturate(180%) blur(14px);-webkit-backdrop-filter:saturate(180%) blur(14px);
+  border-bottom:1px solid var(--line);padding:12px 16px;
+  padding-top:calc(12px + env(safe-area-inset-top,0px));
+  display:flex;align-items:center;gap:12px;
 }
-header h1{font-size:16px;margin:0;font-weight:650;letter-spacing:-.01em;flex:1}
-header .sub{font-size:12px;color:var(--faint);font-weight:400}
-main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:118px}
-.wrap{max-width:760px;margin:0 auto;padding:14px}
+header h1{font-size:19px;margin:0;font-weight:800;letter-spacing:-.03em;line-height:1.15}
+header .sub{font-size:12px;color:var(--faint);font-weight:500;margin-top:1px}
+main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:120px}
+.wrap{max-width:720px;margin:0 auto;padding:16px}
+section{animation:rise .26s cubic-bezier(.2,.7,.3,1)}
+@keyframes rise{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
 
 nav{
-  position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--surface);
+  position:fixed;left:0;right:0;bottom:0;z-index:30;
+  background:color-mix(in srgb,var(--surface) 92%,transparent);
+  backdrop-filter:saturate(180%) blur(16px);-webkit-backdrop-filter:saturate(180%) blur(16px);
   border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);
-  padding-bottom:var(--safe-b);
+  padding:6px 6px calc(6px + var(--safe-b));
 }
-nav button{padding:9px 2px 8px;font-size:10.5px;color:var(--faint);display:grid;gap:3px;justify-items:center;font-weight:500}
-nav button .ic{font-size:17px;line-height:1}
-nav button[aria-current=page]{color:var(--accent);font-weight:650}
+nav button{
+  position:relative;padding:8px 2px 7px;font-size:10.5px;font-weight:600;color:var(--faint);
+  display:grid;gap:4px;justify-items:center;border-radius:12px;transition:color .16s,background .16s;
+}
+nav button .ic{font-size:18px;line-height:1;transition:transform .18s}
+nav button[aria-current=page]{color:var(--accent);background:var(--accent-soft)}
+nav button[aria-current=page] .ic{transform:translateY(-1px) scale(1.06)}
 nav .badge{
-  position:absolute;transform:translate(15px,-6px);background:var(--expense);color:#fff;
-  font-size:9.5px;font-weight:700;border-radius:99px;padding:1px 5px;min-width:16px;
+  position:absolute;top:2px;left:50%;margin-left:4px;background:var(--expense);color:#fff;
+  font-size:9.5px;font-weight:800;border-radius:99px;padding:1px 5px;min-width:17px;text-align:center;
+  box-shadow:0 0 0 2px var(--surface);
 }
 
 /* ---------- generic ---------- */
-.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
-.pad{padding:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh-2)}
+.pad{padding:18px}
 .row{display:flex;align-items:center;gap:10px}
 .sp{justify-content:space-between}
-label{display:block;font-size:11.5px;font-weight:600;color:var(--muted);margin:0 0 5px;letter-spacing:.02em}
+label{display:block;font-size:11.5px;font-weight:700;color:var(--muted);margin:0 0 6px;letter-spacing:.01em}
 input,select,textarea{
-  width:100%;padding:10px 11px;border:1px solid var(--line-2);border-radius:8px;
-  background:var(--surface);appearance:none;font-size:16px; /* 16px stops iOS zoom-on-focus */
+  width:100%;padding:12px 13px;border:1.5px solid var(--line-2);border-radius:11px;
+  background:var(--surface);appearance:none;font-size:16px;font-weight:500;transition:border-color .15s,box-shadow .15s;
 }
-textarea{min-height:66px;resize:vertical}
+input:focus,select:focus,textarea:focus{
+  outline:none;border-color:var(--accent);box-shadow:0 0 0 3.5px var(--accent-soft);
+}
+textarea{min-height:70px;resize:vertical}
 .btn{
-  background:var(--accent);color:var(--accent-ink);padding:11px 15px;border-radius:9px;
-  font-weight:650;font-size:15px;width:100%;text-align:center;
+  background:var(--accent);color:var(--accent-ink);padding:13px 16px;border-radius:12px;
+  font-weight:700;font-size:15px;width:100%;text-align:center;letter-spacing:-.01em;
+  transition:transform .12s,filter .15s;
 }
-.btn.sec{background:var(--surface-2);color:var(--ink);border:1px solid var(--line-2)}
-.btn.sm{width:auto;padding:7px 12px;font-size:13px;border-radius:8px}
-.err{background:var(--warn-bg);color:var(--warn-ink);padding:10px 12px;border-radius:8px;font-size:13.5px;margin-top:10px}
-.empty{text-align:center;color:var(--faint);padding:44px 20px;font-size:14px}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-h2{font-size:13px;text-transform:uppercase;letter-spacing:.07em;color:var(--faint);margin:22px 0 9px;font-weight:650}
-h2:first-child{margin-top:4px}
+.btn:active{transform:scale(.982);filter:brightness(.95)}
+.btn:disabled{opacity:.55}
+.btn.sec{background:var(--surface-2);color:var(--ink);border:1.5px solid var(--line)}
+.btn.sm{width:auto;padding:8px 13px;font-size:13px;border-radius:10px}
+.err{background:var(--warn-bg);color:var(--warn-ink);padding:11px 13px;border-radius:11px;font-size:13.5px;margin-top:11px;font-weight:500}
+.empty{text-align:center;color:var(--faint);padding:52px 22px;font-size:14px;font-weight:500}
+.empty .big{display:block;font-size:30px;margin-bottom:10px;opacity:.5}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+h2{font-size:11.5px;text-transform:uppercase;letter-spacing:.09em;color:var(--faint);margin:26px 0 10px;font-weight:800}
+h2:first-child{margin-top:2px}
 
-/* ---------- filter bar ---------- */
-.filters{display:flex;gap:8px;overflow-x:auto;padding:2px 0 10px;scrollbar-width:none}
+/* ---------- hero ---------- */
+.hero{
+  background:linear-gradient(158deg,var(--accent) 0%,color-mix(in srgb,var(--accent) 74%,#111428) 100%);
+  color:#fff;border-radius:var(--r);padding:20px;box-shadow:var(--sh-2);margin-bottom:12px;
+}
+.hero .lab{font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;opacity:.72}
+.hero .big{font-size:35px;font-weight:800;letter-spacing:-.035em;line-height:1.08;margin:5px 0 3px}
+.hero .cap{font-size:12.5px;opacity:.78;font-weight:500}
+.split{display:flex;height:7px;border-radius:99px;overflow:hidden;margin:16px 0 10px;background:rgba(255,255,255,.2);gap:2px}
+.split i{display:block;height:100%;border-radius:99px}
+.split .a{background:#fff}
+.split .b{background:rgba(255,255,255,.42)}
+.legend{display:flex;gap:16px;font-size:12px;font-weight:600}
+.legend span{display:flex;align-items:center;gap:6px;opacity:.92}
+.legend i{width:8px;height:8px;border-radius:3px;display:block}
+
+/* ---------- filters ---------- */
+.filters{display:flex;gap:8px;overflow-x:auto;padding:2px 0 12px;scrollbar-width:none}
 .filters::-webkit-scrollbar{display:none}
-.filters select{width:auto;padding:7px 26px 7px 10px;font-size:13.5px;border-radius:99px;flex:none;
+.filters select{
+  width:auto;padding:9px 30px 9px 13px;font-size:13.5px;font-weight:600;border-radius:99px;flex:none;
+  border:1.5px solid var(--line);background-color:var(--surface);box-shadow:var(--sh-1);
   background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
-  background-position:calc(100% - 14px) 50%,calc(100% - 9px) 50%;background-size:5px 5px;background-repeat:no-repeat}
+  background-position:calc(100% - 15px) 52%,calc(100% - 10px) 52%;background-size:5px 5px;background-repeat:no-repeat;
+}
 
 /* ---------- transaction rows ---------- */
-.txn{display:grid;grid-template-columns:1fr auto;gap:2px 12px;padding:11px 13px;border-bottom:1px solid var(--line);width:100%;text-align:left;align-items:baseline}
+.txn{
+  display:grid;grid-template-columns:40px 1fr auto;gap:12px;padding:12px 14px;
+  border-bottom:1px solid var(--line);width:100%;text-align:left;align-items:center;
+  transition:background .14s;
+}
 .txn:last-child{border-bottom:0}
 .txn:active{background:var(--surface-2)}
-.txn .m{font-weight:560;font-size:14.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.txn .amt{font-weight:650;font-size:14.5px;white-space:nowrap}
-.txn .amt.in{color:var(--income)} .txn .amt.out{color:var(--ink)} .txn .amt.xf{color:var(--neutral)}
-.txn .meta{grid-column:1;font-size:12px;color:var(--faint);display:flex;gap:6px;flex-wrap:wrap;align-items:center}
-.txn .rmeta{grid-column:2;font-size:11px;color:var(--faint);text-align:right}
-.tag{background:var(--surface-2);border-radius:5px;padding:1px 6px;font-size:11px;color:var(--muted)}
-.tag.rev{background:var(--warn-bg);color:var(--warn-ink);font-weight:650}
-.tag.xf{background:var(--surface-3);color:var(--muted);font-weight:600}
+.ava{
+  width:40px;height:40px;border-radius:13px;display:grid;place-items:center;
+  font-weight:800;font-size:15px;letter-spacing:-.02em;
+  background:var(--surface-2);color:var(--muted);border:1px solid var(--line);
+}
+.ava.in{background:color-mix(in srgb,var(--income) 14%,transparent);color:var(--income);border-color:transparent}
+.ava.xf{background:var(--surface-3);color:var(--neutral);border-color:transparent}
+.tbody{min-width:0}
+.tbody .m{font-weight:700;font-size:14.5px;letter-spacing:-.012em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+.tbody .meta{font-size:12px;color:var(--faint);display:flex;gap:6px;align-items:center;margin-top:2px;overflow:hidden;white-space:nowrap;font-weight:500;text-overflow:ellipsis}
+.tbody .meta > span{overflow:hidden;text-overflow:ellipsis;min-width:0}
+.tbody .meta > .tag{flex:none}
+.tright{text-align:right;white-space:nowrap}
+.tright .amt{font-weight:800;font-size:14.5px;letter-spacing:-.02em;display:block}
+.tright .amt.in{color:var(--income)} .tright .amt.xf{color:var(--neutral);font-weight:700}
+.tright .dt{font-size:11.5px;color:var(--faint);font-weight:600;margin-top:2px;display:block}
+.tag{background:var(--surface-2);border-radius:6px;padding:2px 7px;font-size:11px;color:var(--muted);font-weight:600}
+.tag.rev{background:var(--warn-bg);color:var(--warn-ink);font-weight:700}
+.tag.xf{background:var(--surface-3);color:var(--neutral);font-weight:700}
 
 /* ---------- sheet ---------- */
-.scrim{position:fixed;inset:0;background:rgba(10,12,16,.45);z-index:40;opacity:0;pointer-events:none;transition:opacity .18s}
+.scrim{position:fixed;inset:0;background:rgba(8,10,15,.5);z-index:40;opacity:0;pointer-events:none;transition:opacity .2s;backdrop-filter:blur(2px)}
 .scrim.on{opacity:1;pointer-events:auto}
 .sheet{
   position:fixed;left:0;right:0;bottom:0;z-index:50;background:var(--surface);
-  border-radius:16px 16px 0 0;border-top:1px solid var(--line);
-  max-height:88vh;overflow-y:auto;transform:translateY(100%);transition:transform .22s cubic-bezier(.3,.8,.4,1);
-  padding:8px 16px calc(20px + var(--safe-b));
+  border-radius:22px 22px 0 0;border-top:1px solid var(--line);
+  max-height:90vh;overflow-y:auto;transform:translateY(100%);
+  transition:transform .26s cubic-bezier(.24,.85,.32,1);
+  padding:8px 18px calc(22px + var(--safe-b));box-shadow:0 -12px 40px -18px rgba(0,0,0,.5);
 }
 .sheet.on{transform:none}
-.grab{width:36px;height:4px;background:var(--line-2);border-radius:99px;margin:6px auto 14px}
-.f{margin-bottom:13px}
+.grab{width:38px;height:4.5px;background:var(--line-2);border-radius:99px;margin:7px auto 16px}
+.f{margin-bottom:14px}
+.chk{display:flex;align-items:center;gap:10px;font-size:14.5px;font-weight:600;text-transform:none;letter-spacing:0;color:var(--ink);
+     background:var(--surface-2);padding:12px 13px;border-radius:11px;cursor:pointer}
+.chk input{width:19px;height:19px;flex:none;accent-color:var(--accent)}
 
-/* ---------- chart: single hue, magnitude ranking ---------- */
-.bars{display:grid;gap:9px}
-.bar .top{display:flex;justify-content:space-between;gap:10px;font-size:13.5px;margin-bottom:4px}
+/* ---------- charts: single hue ---------- */
+.bars{display:grid;gap:13px}
+.bar .top{display:flex;justify-content:space-between;gap:10px;font-size:14px;margin-bottom:6px;font-weight:600}
 .bar .top .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.bar .top .vl{font-weight:650;white-space:nowrap}
-.bar .track{height:9px;background:var(--surface-2);border-radius:5px;overflow:hidden}
-.bar .fill{height:100%;background:var(--accent);border-radius:0 5px 5px 0;min-width:3px;transition:width .3s}
-.bar .sub{font-size:11.5px;color:var(--faint);margin-top:3px}
-.months{display:flex;align-items:flex-end;gap:8px;height:130px;padding-top:8px;min-width:0}
-.mo{flex:1 1 0;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px;height:100%}
-.mo .col{width:100%;background:var(--accent);border-radius:5px 5px 0 0;min-height:3px;position:relative}
-.mo .lb{font-size:11px;color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
-.mo .vv{font-size:10.5px;font-weight:650;color:var(--ink);white-space:nowrap;overflow:hidden;max-width:100%}
-.stat{display:grid;gap:2px;padding:13px}
-.stat .k{font-size:11.5px;color:var(--faint);font-weight:600;letter-spacing:.02em}
-.stat .v{font-size:23px;font-weight:700;letter-spacing:-.02em}
-.note{font-size:12.5px;color:var(--faint);margin-top:8px;line-height:1.45}
+.bar .top .vl{font-weight:800;white-space:nowrap;letter-spacing:-.02em}
+.bar .track{height:10px;background:var(--surface-2);border-radius:5px;overflow:hidden}
+.bar .fill{height:100%;background:var(--accent);border-radius:0 5px 5px 0;min-width:4px;
+  transition:width .45s cubic-bezier(.2,.8,.3,1)}
+.bar .sub{font-size:11.5px;color:var(--faint);margin-top:4px;font-weight:500}
+.months{display:flex;align-items:flex-end;gap:9px;height:140px;padding-top:8px;min-width:0}
+.mo{flex:1 1 0;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:7px;height:100%}
+.mo .col{width:100%;background:var(--accent);border-radius:7px 7px 0 0;min-height:4px;
+  transition:height .45s cubic-bezier(.2,.8,.3,1)}
+.mo .col.dim{background:var(--accent-dim)}
+.mo .lb{font-size:11px;color:var(--faint);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.mo .vv{font-size:10.5px;font-weight:800;color:var(--ink);white-space:nowrap;overflow:hidden;max-width:100%}
+.stat{display:grid;gap:3px;padding:15px}
+.stat .k{font-size:11px;color:var(--faint);font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+.stat .v{font-size:24px;font-weight:800;letter-spacing:-.03em}
+.note{font-size:12.5px;color:var(--faint);margin-top:10px;line-height:1.5;font-weight:500}
 
 /* ---------- review ---------- */
-.chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
-.chip{background:var(--surface-2);border:1px solid var(--line);border-radius:99px;padding:7px 12px;font-size:13px;font-weight:550}
-.chip:active,.chip.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
-.gate{max-width:440px;margin:8vh auto;padding:16px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:11px}
+.chip{
+  background:var(--surface-2);border:1.5px solid var(--line);border-radius:99px;
+  padding:9px 14px;font-size:13px;font-weight:650;transition:all .14s;
+}
+.chip:active{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);transform:scale(.97)}
+.gate{max-width:430px;margin:7vh auto;padding:18px}
+.rev-amt{font-size:32px;font-weight:800;letter-spacing:-.035em;margin:6px 0 4px}
+.raw{font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--muted);
+  word-break:break-all;background:var(--surface-2);padding:11px;border-radius:10px;margin-top:12px}
+.prog{height:5px;background:var(--surface-2);border-radius:99px;overflow:hidden;margin-bottom:14px}
+.prog i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .35s}
+
+/* ============================ Pookie mode ============================
+   A committed single look, so no dark variant — every colour is painted
+   explicitly. All semantic colours pass AA text contrast on this ground
+   (ink 12.6:1, muted 5.4:1, faint 4.6:1, accent 4.9:1, income 5.0:1,
+   expense 5.6:1), which matters because amounts render at 14.5px. */
+:root[data-theme=pookie]{
+  --ground:#FFF5F7; --surface:#FFFFFF; --surface-2:#FDECF1; --surface-3:#F8DDE6;
+  --ink:#3A2A31; --muted:#7A5F6A; --faint:#7F5F6B; --line:#F6DCE4; --line-2:#EFC4D3;
+  --accent:#B83E74; --accent-ink:#FFFFFF; --accent-soft:#FCE4EC; --accent-dim:#EFC0D5;
+  --income:#197A52; --expense:#A8442E; --neutral:#7A5F6A;
+  --warn-bg:#FFF1D6; --warn-ink:#8A6212;
+  --r:22px; --r-sm:16px;
+  --sh-1:0 1px 2px rgba(184,62,116,.07);
+  --sh-2:0 3px 6px rgba(184,62,116,.06),0 14px 30px -16px rgba(184,62,116,.3);
+}
+:root[data-theme=pookie] body{
+  font-family:"Quicksand","Plus Jakarta Sans",-apple-system,sans-serif;
+  font-weight:600;letter-spacing:0;
+  background-image:
+    radial-gradient(circle at 12% 8%, rgba(255,214,229,.55) 0, transparent 34%),
+    radial-gradient(circle at 88% 22%, rgba(214,240,226,.5) 0, transparent 32%),
+    radial-gradient(circle at 50% 96%, rgba(255,228,236,.6) 0, transparent 40%);
+  background-attachment:fixed;
+}
+:root[data-theme=pookie] .num{font-family:"Plus Jakarta Sans",sans-serif} /* tabular figures */
+:root[data-theme=pookie] h1,:root[data-theme=pookie] .hero .big,
+:root[data-theme=pookie] .rev-amt,:root[data-theme=pookie] .stat .v{letter-spacing:-.01em}
+:root[data-theme=pookie] .btn{border-radius:99px}
+:root[data-theme=pookie] .chip{border-radius:99px;border-width:2px}
+:root[data-theme=pookie] .ava{
+  border-radius:50%;background:#FFF;border:2px solid var(--line-2);font-size:18px;
+}
+:root[data-theme=pookie] .ava.in{background:#E4F6EC;border-color:#BFE5D1}
+:root[data-theme=pookie] .ava.xf{background:#F3EEF6;border-color:#E0D4E8}
+:root[data-theme=pookie] .hero{
+  background:linear-gradient(150deg,#F49BC0 0%,#B83E74 62%,#8E2D5A 100%);
+}
+:root[data-theme=pookie] .hero::after{
+  content:"🐼";position:absolute;right:16px;top:12px;font-size:34px;opacity:.9;
+  animation:peek 5s ease-in-out infinite;
+}
+:root[data-theme=pookie] .hero{position:relative;overflow:hidden}
+@keyframes peek{0%,88%,100%{transform:translateY(0) rotate(0)}92%{transform:translateY(-5px) rotate(-9deg)}96%{transform:translateY(-5px) rotate(9deg)}}
+:root[data-theme=pookie] nav button[aria-current=page] .ic{animation:boing .42s cubic-bezier(.3,1.6,.5,1)}
+@keyframes boing{0%{transform:scale(1)}45%{transform:scale(1.32) rotate(-8deg)}100%{transform:scale(1.06)}}
+:root[data-theme=pookie] .txn:active{background:var(--accent-soft)}
+:root[data-theme=pookie] .card{border-width:2px}
+:root[data-theme=pookie] .empty .big{opacity:1;font-size:38px}
+:root[data-theme=pookie] .bar .fill,
+:root[data-theme=pookie] .mo .col{background:linear-gradient(90deg,#E876A6,#B83E74)}
+:root[data-theme=pookie] .mo .col{background:linear-gradient(180deg,#E876A6,#B83E74)}
+:root[data-theme=pookie] .prog i{background:linear-gradient(90deg,#F49BC0,#B83E74)}
+
+/* ---- celebration particles (all themes; pookie just throws more) ---- */
+#fx{position:fixed;inset:0;pointer-events:none;z-index:80;overflow:hidden}
+.pt{position:absolute;font-size:22px;will-change:transform,opacity;animation:fly var(--d,1100ms) cubic-bezier(.2,.7,.4,1) forwards}
+@keyframes fly{
+  0%{transform:translate(0,0) scale(.5) rotate(0);opacity:0}
+  14%{opacity:1;transform:translate(0,-14px) scale(1.12) rotate(6deg)}
+  100%{transform:translate(var(--x,0),var(--y,-150px)) scale(.8) rotate(var(--r,120deg));opacity:0}
+}
+@media (prefers-reduced-motion:reduce){.pt{display:none}}
+
+/* ---- settings ---- */
+.modes{display:grid;gap:10px}
+.mode{
+  display:grid;grid-template-columns:44px 1fr 22px;gap:13px;align-items:center;
+  padding:13px;border:2px solid var(--line);border-radius:14px;text-align:left;
+  background:var(--surface);transition:border-color .15s,background .15s;width:100%;
+}
+.mode[aria-checked=true]{border-color:var(--accent);background:var(--accent-soft)}
+.mode .sw{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:20px;border:1px solid var(--line)}
+.mode .nm{font-weight:700;font-size:15px}
+.mode .ds{font-size:12.5px;color:var(--faint);font-weight:500;margin-top:1px}
+.mode .tick{color:var(--accent);font-weight:800;font-size:17px;opacity:0}
+.mode[aria-checked=true] .tick{opacity:1}
+
 </style>
 </head>
 <body>
@@ -191,6 +345,7 @@ h2:first-child{margin-top:4px}
       <h1 id="vtitle">Ledger</h1>
       <div class="sub" id="vsub"></div>
     </div>
+    <button class="btn sec sm" id="settings" aria-label="Settings">⚙</button>
     <button class="btn sec sm" id="refresh" aria-label="Refresh">↻</button>
   </header>
 
@@ -208,10 +363,7 @@ h2:first-child{margin-top:4px}
           </select>
           <select id="fAcct"><option value="">All accounts</option></select>
         </div>
-        <div class="grid2" style="margin-bottom:12px">
-          <div class="card stat"><div class="k">Spent</div><div class="v num" id="sSpend">—</div></div>
-          <div class="card stat"><div class="k">Received</div><div class="v num" id="sInc">—</div></div>
-        </div>
+        <div class="hero" id="hero"></div>
         <div class="card" id="ledgerList"></div>
       </section>
 
@@ -229,8 +381,8 @@ h2:first-child{margin-top:4px}
           <div class="f"><label for="aAcct">Account</label><select id="aAcct"></select></div>
           <div class="f"><label for="aCat">Category</label><select id="aCat"></select></div>
           <div class="f"><label for="aMerch">Merchant / description</label><input id="aMerch" placeholder="e.g. chai at the office"></div>
-          <div class="f"><label class="row" style="gap:8px;font-size:14px;text-transform:none;letter-spacing:0">
-            <input type="checkbox" id="aXfer" style="width:auto"> Transfer (keep out of spending totals)</label></div>
+          <div class="f"><label class="chk" for="aXfer">
+            <input type="checkbox" id="aXfer"> Transfer — keep out of spending totals</label></div>
           <button class="btn" id="aSave">Add transaction</button>
           <div id="addErr"></div>
         </div>
@@ -273,6 +425,7 @@ h2:first-child{margin-top:4px}
   </nav>
 </div>
 
+<div id="fx" aria-hidden="true"></div>
 <div class="scrim" id="scrim"></div>
 <div class="sheet" id="sheet"><div class="grab"></div><div id="sheetBody"></div></div>
 
@@ -290,6 +443,7 @@ let sb = null, S = { txns:[], cats:[], accts:[], debts:[], month:'', profile:nul
 const fmtFull = new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:0});
 const fmt2    = new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',minimumFractionDigits:2});
 const money  = n => fmtFull.format(n||0);
+const pct = (a,b) => { if(!b) return '0%'; const r=a/b*100; return r>0 && r<1 ? '<1%' : Math.round(r)+'%'; };
 const compact = n => n>=100000 ? (n/100000).toFixed(n>=1000000?0:1)+'L'
                    : n>=1000   ? (n/1000).toFixed(n>=10000?0:1)+'k'
                    : Math.round(n).toString();
@@ -300,8 +454,91 @@ const monthName = k => { const [y,m]=k.split('-'); return new Date(y,m-1,1).toLo
 
 function err(el,msg){ const n=$(el); n.innerHTML = msg ? `<div class="err">${esc(msg)}</div>` : ''; }
 
+
+/* ---------------- theme ---------------- */
+const THEMES = {
+  auto:   {icon:'◐', name:'Match my device', desc:'Follows your phone’s light or dark setting'},
+  light:  {icon:'☀', name:'Light',           desc:'Always light, whatever the device says'},
+  dark:   {icon:'☾', name:'Dark',            desc:'Always dark, easier at night'},
+  pookie: {icon:'🐼', name:'Pookie',          desc:'Pandas, blush pink and a bit of confetti'}
+};
+function applyTheme(t){
+  if(t==='auto') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme', t);
+  const meta=document.querySelector('meta[name=theme-color]');
+  if(meta) meta.setAttribute('content',
+    getComputedStyle(document.body).backgroundColor || '#F4F6FA');
+  try{ localStorage.setItem('kh.theme', t); }catch(_){}
+}
+function currentTheme(){
+  try{ return localStorage.getItem('kh.theme') || 'auto'; }catch(_){ return 'auto'; }
+}
+function isPookie(){ return currentTheme()==='pookie'; }
+
+/* ---------------- celebration ---------------- */
+const CHEER = { pookie:['🐼','🎋','💗','🌸','✨','🧸'], plain:['✓'] };
+function cheer(n, big){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const pool = isPookie() ? CHEER.pookie : CHEER.plain;
+  if(!isPookie() && !big) return;                 // outside pookie, only the big moment
+  const host=$('#fx'); const count = n || (isPookie()? (big?26:11) : 14);
+  const cx=innerWidth/2, cy=big? innerHeight*0.42 : innerHeight*0.74;
+  for(let i=0;i<count;i++){
+    const el=document.createElement('span');
+    el.className='pt'; el.textContent=pool[(Math.random()*pool.length)|0];
+    el.style.left=(cx + (Math.random()*150-75))+'px';
+    el.style.top =(cy + (Math.random()*40-20))+'px';
+    el.style.setProperty('--x',(Math.random()*260-130)+'px');
+    el.style.setProperty('--y',(-110-Math.random()*190)+'px');
+    el.style.setProperty('--r',(Math.random()*400-200)+'deg');
+    el.style.setProperty('--d',(950+Math.random()*700)+'ms');
+    el.style.fontSize=(big?26:19)+Math.random()*10+'px';
+    host.appendChild(el);
+    setTimeout(()=>el.remove(), 1900);
+  }
+}
+
+/* ---------------- settings sheet ---------------- */
+$('#settings').onclick = () => {
+  const cur=currentTheme();
+  $('#sheetBody').innerHTML = `
+    <div style="font-weight:800;font-size:19px;letter-spacing:-.02em;margin-bottom:4px">Appearance</div>
+    <div style="color:var(--faint);font-size:13px;margin-bottom:16px">Saved on this device only.</div>
+    <div class="modes">${Object.entries(THEMES).map(([k,v])=>`
+      <button class="mode" role="radio" aria-checked="${k===cur}" data-t="${k}">
+        <span class="sw" style="${k==='pookie'?'background:#FFF5F7':k==='dark'?'background:#141822;color:#EAEDF4':k==='light'?'background:#F4F6FA;color:#0E1119':''}">${v.icon}</span>
+        <span><span class="nm">${v.name}</span><span class="ds">${v.desc}</span></span>
+        <span class="tick">✓</span>
+      </button>`).join('')}</div>
+    <div id="installWrap" class="hide" style="margin-top:16px">
+      <button class="btn sec" id="installBtn">Install on this device</button>
+      <p class="note">Adds Khaata to your home screen with its own icon.</p>
+    </div>
+    <button class="btn sec" id="signOut" style="margin-top:16px">Sign out</button>`;
+  toggleSheet(true);
+  $$('#sheetBody .mode').forEach(b=>b.onclick=()=>{
+    applyTheme(b.dataset.t);
+    $$('#sheetBody .mode').forEach(x=>x.setAttribute('aria-checked', String(x===b)));
+    if(b.dataset.t==='pookie') cheer(22, true);
+  });
+  if(deferredInstall){
+    $('#installWrap').classList.remove('hide');
+    $('#installBtn').onclick = async () => {
+      deferredInstall.prompt();
+      await deferredInstall.userChoice;
+      deferredInstall=null; $('#installWrap').classList.add('hide');
+    };
+  }
+  $('#signOut').onclick = async () => { await sb.auth.signOut(); location.reload(); };
+};
+
+/* Android fires this; iOS does not, so the button only appears where it works */
+let deferredInstall=null;
+addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredInstall=e; });
+
 /* ---------------- boot ---------------- */
 function boot(){
+  applyTheme(currentTheme());
   const url = localStorage.getItem(LS.url), key = localStorage.getItem(LS.key);
   if(!url || !key){ $('#stepCfg').classList.remove('hide'); return; }
   try { sb = supabase.createClient(url, key); }
@@ -370,8 +607,7 @@ async function loadAll(){
   $('#fAcct').innerHTML = `<option value="">All accounts</option>` +
     S.accts.map(a=>`<option value="${a.id}">${esc(a.name)}${a.last4?' ····'+a.last4:''}</option>`).join('');
 
-  const opts = catOptions();
-  $('#aCat').innerHTML = `<option value="">— none —</option>` + opts;
+  syncAddCats();
   $('#aAcct').innerHTML = S.accts.filter(a=>a.is_active).map(a=>`<option value="${a.id}">${esc(a.name)}</option>`).join('');
   if(!$('#aDate').value) $('#aDate').value = new Date().toISOString().slice(0,10);
 
@@ -379,14 +615,37 @@ async function loadAll(){
   const b=$('#revBadge'); b.textContent=nRev; b.classList.toggle('hide', nRev===0);
 }
 
-function catOptions(sel){
-  const tops = S.cats.filter(c=>!c.parent_id).sort((a,b)=>a.sort_order-b.sort_order);
+// Which category kinds may be chosen for a given direction.
+// Money out never offers income categories, and vice versa. Transfers are their
+// own world, reached by the Transfer checkbox rather than mixed into the list.
+function kindsFor(direction, isTransfer){
+  if(isTransfer) return ['transfer'];
+  return direction==='credit' ? ['income'] : ['expense'];
+}
+function catOptions(sel, kinds){
+  let allow = kinds;
+  if(allow && sel){
+    // never silently drop the value already on the row
+    const c=S.catById[sel];
+    const top=c ? (c.parent_id ? S.catById[c.parent_id] : c) : null;
+    if(top && !allow.includes(top.kind)) allow = allow.concat([top.kind]);
+  }
+  const tops = S.cats.filter(c=>!c.parent_id)
+                     .filter(c=>!allow || allow.includes(c.kind))
+                     .sort((a,b)=>a.sort_order-b.sort_order);
+  if(!tops.length) return '';
   return tops.map(t=>{
     const kids = S.cats.filter(c=>c.parent_id===t.id).sort((a,b)=>a.sort_order-b.sort_order);
     const o = [`<option value="${t.id}"${sel===t.id?' selected':''}>${esc(t.name)}</option>`]
       .concat(kids.map(k=>`<option value="${k.id}"${sel===k.id?' selected':''}>   ${esc(k.name)}</option>`));
     return `<optgroup label="${esc(t.name)} · ${t.kind}">${o.join('')}</optgroup>`;
   }).join('');
+}
+function syncAddCats(){
+  const keep = $('#aCat').value;
+  const kinds = kindsFor($('#aDir').value, $('#aXfer').checked);
+  $('#aCat').innerHTML = `<option value="">— none —</option>` + catOptions(keep, kinds);
+  $('#aCat').value = keep;   // '' if the old pick is no longer valid
 }
 function catLabel(id){
   const c=S.catById[id]; if(!c) return null;
@@ -410,6 +669,8 @@ function show(v){
 $$('nav button').forEach(b=>b.onclick=()=>show(b.dataset.v));
 $('#refresh').onclick = async () => { $('#refresh').textContent='…'; await loadAll(); $('#refresh').textContent='↻';
   show($$('nav button').find(b=>b.getAttribute('aria-current')==='page').dataset.v); };
+$('#aDir').addEventListener('change', syncAddCats);
+$('#aXfer').addEventListener('change', syncAddCats);
 ['#fMonth','#fKind','#fAcct'].forEach(s=>$(s).onchange=()=>{ if(s==='#fMonth') S.month=$(s).value; renderLedger(); });
 
 function filtered(){
@@ -421,22 +682,43 @@ function filtered(){
     t.status!=='ignored' && t.status!=='duplicate');
 }
 
+const CAT_EMOJI = {
+  'Food':'🍜','Transport':'🚕','Subscriptions':'🔁','Personal':'🛍️','Relationship':'💗',
+  'Alcohol & Nightlife':'🍸','Entertainment':'🎬','Travel':'✈️','Home & Bills':'🏠',
+  'Financial':'🏦','Lent Out':'🤝','Salary':'💼','Side Income':'🌱','Petty Cash':'👛',
+  'Returns':'↩️','Borrowed In':'🤝','Credit Card Bill Payment':'💳','Wallet Top-up':'👛',
+  'Self Transfer':'🔁'
+};
 function txnRow(t){
   const kind=kindOf(t);
   const sign = kind==='income' ? '+' : (kind==='transfer' ? '' : '−');
-  const cls  = kind==='income' ? 'in' : (kind==='transfer' ? 'xf' : 'out');
+  const cls  = kind==='income' ? 'in' : (kind==='transfer' ? 'xf' : '');
   const acct = S.acctById[t.account_id];
   const cat  = catLabel(t.category_id);
+  const name = t.merchant_clean || t.merchant_raw || '(no merchant)';
+  // identity by initial, not by colour — colour here would need a categorical
+  // palette and would fail CVD separation at this many categories
+  let initial = (name.match(/[A-Za-z0-9]/)||['?'])[0].toUpperCase();
+  if(isPookie()){
+    const top = (()=>{ const c=S.catById[t.category_id];
+      return c ? (c.parent_id ? S.catById[c.parent_id]?.name : c.name) : null; })();
+    initial = CAT_EMOJI[top] || (kind==='income'?'🌱':kind==='transfer'?'🔁':'🐼');
+  }
   return `<button class="txn" data-id="${t.id}">
-    <span class="m">${esc(t.merchant_clean||t.merchant_raw||'(no merchant)')}</span>
-    <span class="amt num ${cls}">${sign}${money2(t.amount)}</span>
-    <span class="meta">
-      ${cat?`<span class="tag">${esc(cat)}</span>`:''}
-      ${t.status==='needs_review'?'<span class="tag rev">review</span>':''}
-      ${t.is_transfer?'<span class="tag xf">transfer</span>':''}
-      ${acct?`<span>${esc(acct.name)}</span>`:''}
+    <span class="ava ${cls}">${esc(initial)}</span>
+    <span class="tbody">
+      <span class="m">${esc(name)}</span>
+      <span class="meta">
+        ${t.status==='needs_review'?'<span class="tag rev">review</span>':''}
+        ${t.is_transfer?'<span class="tag xf">transfer</span>':''}
+        ${cat?`<span>${esc(cat)}</span>`:(t.status!=='needs_review'?'<span>Uncategorised</span>':'')}
+        ${acct?`<span>· ${esc(acct.name)}</span>`:''}
+      </span>
     </span>
-    <span class="rmeta">${new Date(t.txn_date).toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</span>
+    <span class="tright">
+      <span class="amt num ${cls}">${sign}${money2(t.amount)}</span>
+      <span class="dt">${new Date(t.txn_date).toLocaleDateString('en-IN',{day:'numeric',month:'short'})}</span>
+    </span>
   </button>`;
 }
 
@@ -444,10 +726,23 @@ function renderLedger(){
   const rows=filtered();
   const spend=rows.filter(t=>kindOf(t)==='spend').reduce((s,t)=>s+ +t.amount,0);
   const inc  =rows.filter(t=>kindOf(t)==='income').reduce((s,t)=>s+ +t.amount,0);
-  $('#sSpend').textContent=money(spend); $('#sInc').textContent=money(inc);
+  const net = inc-spend, tot = Math.max(1, inc+spend);
+  $('#hero').innerHTML = `
+    <div class="lab">${S.month?monthName(S.month):'All time'} · net</div>
+    <div class="big num">${net>=0?'+':'−'}${money(Math.abs(net))}</div>
+    <div class="cap">${rows.length} transaction${rows.length===1?'':'s'}${
+      net>=0?' · you kept more than you spent':' · you spent more than came in'}</div>
+    <div class="split">
+      <i class="a" style="width:${inc/tot*100}%"></i>
+      <i class="b" style="width:${spend/tot*100}%"></i>
+    </div>
+    <div class="legend">
+      <span><i style="background:#fff"></i>In ${money(inc)}</span>
+      <span><i style="background:rgba(255,255,255,.42)"></i>Out ${money(spend)}</span>
+    </div>`;
   $('#ledgerList').innerHTML = rows.length
     ? rows.map(txnRow).join('')
-    : `<div class="empty">Nothing here for this filter.</div>`;
+    : `<div class="empty"><span class="big">◌</span>Nothing here for this filter.</div>`;
   $$('#ledgerList .txn').forEach(b=>b.onclick=()=>openSheet(b.dataset.id));
 }
 
@@ -462,11 +757,11 @@ function openSheet(id){
     </div>
     ${t.merchant_raw && t.merchant_raw!==t.merchant_clean ? `<div class="f"><label>As the bank wrote it</label>
       <div style="font:12.5px ui-monospace,Menlo,monospace;color:var(--muted);word-break:break-all;background:var(--surface-2);padding:9px;border-radius:8px">${esc(t.merchant_raw)}</div></div>`:''}
-    <div class="f"><label for="eCat">Category</label><select id="eCat"><option value="">— none —</option>${catOptions(t.category_id)}</select></div>
+    <div class="f"><label for="eCat">Category</label><select id="eCat"><option value="">— none —</option>${catOptions(t.category_id, kindsFor(t.direction, t.is_transfer))}</select></div>
     <div class="f"><label for="eMerch">Merchant</label><input id="eMerch" value="${esc(t.merchant_clean||'')}"></div>
     <div class="f"><label for="eNotes">Notes</label><textarea id="eNotes">${esc(t.notes||'')}</textarea></div>
-    <div class="f"><label class="row" style="gap:8px;font-size:14px;text-transform:none;letter-spacing:0">
-      <input type="checkbox" id="eXfer" style="width:auto" ${t.is_transfer?'checked':''}> Transfer — keep out of spending totals</label></div>
+    <div class="f"><label class="chk" for="eXfer">
+      <input type="checkbox" id="eXfer" ${t.is_transfer?'checked':''}> Transfer — keep out of spending totals</label></div>
     <button class="btn" id="eSave">Save</button>
     <div class="grid2" style="margin-top:9px">
       <button class="btn sec" id="eIgnore">Ignore</button>
@@ -474,6 +769,12 @@ function openSheet(id){
     </div>
     <div id="eErr"></div>`;
   toggleSheet(true);
+  $('#eXfer').addEventListener('change', () => {
+    const keep=$('#eCat').value;
+    $('#eCat').innerHTML = `<option value="">— none —</option>` +
+      catOptions(keep, kindsFor(t.direction, $('#eXfer').checked));
+    $('#eCat').value = keep;
+  });
   $('#eClose').onclick=()=>toggleSheet(false);
   $('#eIgnore').onclick=()=>saveTxn(id,{status:'ignored'});
   $('#eSave').onclick=()=>saveTxn(id,{
@@ -493,6 +794,7 @@ async function saveTxn(id,patch){
   Object.assign(S.txns.find(x=>x.id===id), patch);
   const n=S.txns.filter(x=>x.status==='needs_review').length;
   const b=$('#revBadge'); b.textContent=n; b.classList.toggle('hide',n===0);
+  cheer();
   toggleSheet(false); renderLedger();
 }
 function toggleSheet(on){ $('#sheet').classList.toggle('on',on); $('#scrim').classList.toggle('on',on); }
@@ -501,20 +803,21 @@ $('#scrim').onclick=()=>toggleSheet(false);
 /* ---------------- review queue ---------------- */
 function renderReview(){
   const q=S.txns.filter(t=>t.status==='needs_review');
-  if(!q.length){ $('#revBox').innerHTML=`<div class="empty">Nothing waiting. The ledger is fully categorised.</div>`; return; }
+  if(!q.length){ $('#revBox').innerHTML=`<div class="card"><div class="empty"><span class="big">✓</span>Nothing waiting.<br>The ledger is fully categorised.</div></div>`; return; }
   const t=q[0];
   const g = suggest(t);
   $('#revBox').innerHTML = `
     <div class="card pad">
-      <div style="color:var(--faint);font-size:12.5px;margin-bottom:8px">${q.length} left</div>
+      <div class="prog"><i style="width:${Math.max(3,(1-q.length/Math.max(1,S.txns.length))*100)}%"></i></div>
+      <div style="color:var(--faint);font-size:12.5px;margin-bottom:8px;font-weight:600">${q.length} left to categorise</div>
       <div style="font-weight:650;font-size:19px;letter-spacing:-.01em">${esc(t.merchant_clean||t.merchant_raw||'')}</div>
-      <div class="num" style="font-size:26px;font-weight:700;margin:5px 0 3px">${money2(t.amount)}</div>
+      <div class="rev-amt num">${money2(t.amount)}</div>
       <div style="color:var(--faint);font-size:13px">${new Date(t.txn_date).toLocaleDateString('en-IN',{dateStyle:'medium'})} · ${t.direction==='credit'?'money in':'money out'}${S.acctById[t.account_id]?' · '+esc(S.acctById[t.account_id].name):''}</div>
-      ${t.merchant_raw?`<div style="font:12px ui-monospace,Menlo,monospace;color:var(--muted);word-break:break-all;background:var(--surface-2);padding:9px;border-radius:8px;margin-top:11px">${esc(t.merchant_raw)}</div>`:''}
+      ${t.merchant_raw?`<div class="raw">${esc(t.merchant_raw)}</div>`:''}
       ${g.named.length?`<h2 style="margin:16px 0 0">Matches the name</h2><div class="chips">${g.named.map(x=>`<button class="chip" data-c="${x.id}">${esc(x.label)}</button>`).join('')}</div>`:''}
       ${g.often.length?`<h2 style="margin:16px 0 0">You usually file this account under</h2><div class="chips">${g.often.map(x=>`<button class="chip" data-c="${x.id}">${esc(x.label)}</button>`).join('')}</div>`:''}
       <h2>All categories</h2>
-      <select id="rCat"><option value="">— pick —</option>${catOptions(null)}</select>
+      <select id="rCat"><option value="">— pick —</option>${catOptions(null, kindsFor(t.direction, t.is_transfer))}</select>
       <div class="grid2" style="margin-top:12px">
         <button class="btn" id="rSave">Save</button>
         <button class="btn sec" id="rXfer">It's a transfer</button>
@@ -532,12 +835,14 @@ function suggest(t){
   // Match category names against the CLEAN merchant only, on word boundaries.
   // Matching the raw UPI string produced nonsense: "MALBARWALAFATIMA" contains
   // "bar" (-> Bar & Pub) and "OKHDFCBANK" contains "bank" (-> Bank Charges).
+  const allowed = kindsFor(t.direction, t.is_transfer);
   const clean = (t.merchant_clean||'').toLowerCase();
   const words = new Set(clean.split(/[^a-z0-9]+/).filter(w=>w.length>3));
   const named=[];
   for(const c of S.cats){
     if(!c.parent_id) continue;
     const p=S.catById[c.parent_id]; if(!p) continue;
+    if(!allowed.includes(p.kind)) continue;
     const hit=[c.name,p.name].some(n =>
       n.toLowerCase().split(/[^a-z0-9]+/).filter(w=>w.length>3).some(w=>words.has(w)));
     if(hit) named.push({id:c.id,label:`${p.name} › ${c.name}`});
@@ -547,8 +852,11 @@ function suggest(t){
   S.txns.filter(x=>x.account_id===t.account_id && x.category_id && x.status==='confirmed'
                    && x.direction===t.direction && !!x.is_transfer===!!t.is_transfer)
         .forEach(x=>freq[x.category_id]=(freq[x.category_id]||0)+1);
-  const often=Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,4)
-    .map(([id])=>({id,label:catLabel(id)})).filter(o=>o.label && !named.find(n=>n.id===o.id));
+  const often=Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,6)
+    .map(([id])=>({id,label:catLabel(id),kind:(()=>{const c=S.catById[id];
+        const top=c?(c.parent_id?S.catById[c.parent_id]:c):null; return top&&top.kind;})()}))
+    .filter(o=>o.label && allowed.includes(o.kind) && !named.find(n=>n.id===o.id))
+    .slice(0,4);
   return { named: named.slice(0,4), often };
 }
 async function reviewSave(id,patch){
@@ -557,6 +865,7 @@ async function reviewSave(id,patch){
   Object.assign(S.txns.find(x=>x.id===id), patch);
   const n=S.txns.filter(x=>x.status==='needs_review').length;
   const b=$('#revBadge'); b.textContent=n; b.classList.toggle('hide',n===0);
+  cheer(0, n===0);          // a bigger moment when the queue finally empties
   renderReview();
 }
 
@@ -576,6 +885,7 @@ $('#aSave').onclick = async () => {
   btn.disabled=false; btn.textContent='Add transaction';
   if(error) return err('#addErr', error.message);
   $('#aAmt').value=''; $('#aMerch').value=''; $('#aXfer').checked=false;
+  cheer();
   await loadAll(); show('ledger');
 };
 
@@ -591,7 +901,7 @@ function renderDebts(){
       <span class="meta"><span class="tag">${d.direction==='they_owe'?'owes you':'you owe'}</span>
         <span>paid ${money2(d.paid)} of ${money2(d.principal)}</span></span>
       <span class="rmeta">${esc(d.status)}</span>
-    </div>`).join('') : `<div class="empty">No debts tracked.</div>`;
+    </div>`).join('') : `<div class="empty"><span class="big">⇄</span>No debts tracked yet.</div>`;
 }
 $('#dSave').onclick = async () => {
   err('#debtErr','');
@@ -654,8 +964,8 @@ function renderInsights(){
         <div class="bar" title="${esc(n)} · ${money2(v.amt)} across ${v.n} transaction${v.n>1?'s':''}">
           <div class="top"><span class="nm">${esc(n)}</span><span class="vl num">${money(v.amt)}</span></div>
           <div class="track"><div class="fill" style="width:${Math.max(2,v.amt/max*100)}%"></div></div>
-          <div class="sub">${v.n} transaction${v.n>1?'s':''} · ${spend?Math.round(v.amt/spend*100):0}% of spending</div>
-        </div>`).join('')}</div>` : `<div class="empty">No confirmed spending yet.</div>`}
+          <div class="sub">${v.n} transaction${v.n>1?'s':''} · ${pct(v.amt,spend)} of spending</div>
+        </div>`).join('')}</div>` : `<div class="empty"><span class="big">◌</span>No confirmed spending yet.</div>`}
     </div>
 
     <h2>Month by month</h2>
@@ -663,10 +973,10 @@ function renderInsights(){
       ${months.length ? `<div class="months">${months.map(([k,v])=>`
         <div class="mo" title="${monthName(k)} · ${money2(v)}">
           <span class="vv num">${compact(v)}</span>
-          <div class="col" style="height:${Math.max(3,v/mmax*88)}%"></div>
+          <div class="col${k===months[months.length-1][0]?' dim':''}" style="height:${Math.max(3,v/mmax*88)}%"></div>
           <span class="lb">${monthName(k).split(' ')[0]}</span>
-        </div>`).join('')}</div>` : `<div class="empty">Not enough history yet.</div>`}
-      <p class="note">Spending only. Transfers between your own accounts are excluded — including them would add ${money(xfer)} of money that never left your pocket.</p>
+        </div>`).join('')}</div>` : `<div class="empty"><span class="big">◌</span>Not enough history yet.</div>`}
+      <p class="note">The last column is the month in progress, so it is lighter — it is not a real drop. Spending only; transfers between your own accounts are excluded — including them would add ${money(xfer)} of money that never left your pocket.</p>
     </div>
 
     ${nRev?`<h2>Still to categorise</h2><div class="card pad">
