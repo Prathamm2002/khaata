@@ -406,9 +406,10 @@ h2:first-child{margin-top:2px}
 .combo .cadd.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .combo .cadd:disabled{opacity:.4}
 .copts{
-  margin-top:8px;max-height:230px;overflow-y:auto;border:1.5px solid var(--line);
+  margin-top:8px;max-height:290px;overflow-y:auto;border:1.5px solid var(--line);
   border-radius:12px;background:var(--surface);
 }
+.cnew{position:sticky;top:0;z-index:2}
 .copts:empty{display:none}
 .copt{
   display:block;width:100%;text-align:left;padding:11px 13px;font-size:14px;font-weight:600;
@@ -418,8 +419,8 @@ h2:first-child{margin-top:2px}
 .copt small{display:block;color:var(--faint);font-weight:500;font-size:11.5px;margin-top:1px}
 .copt:active,.copt.hl{background:var(--accent-soft)}
 .copt.new{color:var(--accent)}
-.cnew{padding:11px 13px;border-top:1.5px dashed var(--line-2);background:var(--surface-2)}
-.cnew .lbl{font-size:12px;color:var(--muted);font-weight:700;margin-bottom:7px}
+.cnew{padding:12px 13px;border-bottom:1.5px dashed var(--line-2);background:var(--accent-soft)}
+.cnew .lbl{font-size:12.5px;color:var(--ink);font-weight:700;margin-bottom:8px}
 .cpick{width:100%;font-size:14px;padding:9px 11px}
 .csel{
   display:flex;align-items:center;gap:8px;background:var(--accent-soft);color:var(--accent);
@@ -501,7 +502,7 @@ h2:first-child{margin-top:2px}
 .hint{background:var(--accent-soft);border-radius:11px;padding:12px 13px;margin-top:10px;font-size:13.5px;font-weight:600;line-height:1.45}
 .hint .ha{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
 .mrow{
-  display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:center;
+  display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;gap:8px;align-items:center;
   padding:11px 13px;border-bottom:1px solid var(--line);
 }
 .mrow:last-child{border-bottom:0}
@@ -509,6 +510,13 @@ h2:first-child{margin-top:2px}
 .mrow .nm small{display:block;color:var(--faint);font-weight:600;font-size:11px;margin-top:1px}
 .mrow .ct{font-size:11.5px;color:var(--faint);font-weight:700;white-space:nowrap}
 .mrow .del{color:var(--expense);font-weight:800;font-size:17px;width:26px;text-align:center}
+.mrow .addsub{color:var(--accent);font-weight:800;font-size:19px;width:26px;text-align:center;line-height:1}
+.subadd{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;padding:10px 13px 10px 27px;
+  background:var(--accent-soft);border-bottom:1px solid var(--line)}
+.subadd input{padding:9px 11px;font-size:14px}
+.subadd button{font-weight:800;font-size:13px;padding:0 12px;border-radius:9px}
+.subadd .ok{background:var(--accent);color:var(--accent-ink)}
+.subadd .no{background:var(--surface-2);color:var(--muted);border:1px solid var(--line-2)}
 .mrow.sub .nm{padding-left:14px;font-weight:600;color:var(--muted)}
 .mgroup{border:1.5px solid var(--line);border-radius:13px;overflow:hidden;margin-bottom:14px;background:var(--surface)}
 .mgroup > h4{margin:0;padding:10px 13px;background:var(--surface-2);font-size:10.5px;
@@ -723,7 +731,7 @@ function mountCombo(host, opts){
     const hits = pool().filter(c => !ql || leafLabel(c).toLowerCase().includes(ql)
                                         || c.name.toLowerCase().includes(ql));
     const exact = pool().find(c => leafLabel(c).toLowerCase()===ql || c.name.toLowerCase()===ql);
-    list.innerHTML = hits.slice(0,40).map(c =>
+    const optHtml = hits.slice(0,40).map(c =>
       `<button type="button" class="copt" data-id="${c.id}">${esc(c.name)}
          ${c.parent_id?`<small>in ${esc(S.catById[c.parent_id].name)}</small>`:'<small>top level</small>'}</button>`
     ).join('');
@@ -735,21 +743,24 @@ function mountCombo(host, opts){
       const guess = parentTyped
         ? tops.find(t=>t.name.toLowerCase()===parentTyped.toLowerCase())
         : null;
-      list.insertAdjacentHTML('beforeend', `
+      // FIRST, not last: appended after 40 matches it sat below the fold of a
+      // 230px scroller, so the parent picker was effectively invisible.
+      list.innerHTML = `
         <div class="cnew">
-          <div class="lbl">Not there yet — create “${esc(childName)}”</div>
+          <div class="lbl">Add “${esc(childName)}” as a…</div>
           <select class="cpick">
-            <option value="">As a new top-level category</option>
-            ${tops.map(t=>`<option value="${t.id}"${guess&&guess.id===t.id?' selected':''}>Inside ${esc(t.name)}</option>`).join('')}
+            <option value="">Main category of its own</option>
+            ${tops.map(t=>`<option value="${t.id}"${guess&&guess.id===t.id?' selected':''}>Sub-category of ${esc(t.name)}</option>`).join('')}
           </select>
-        </div>`);
+          <div class="lbl" style="margin:7px 0 0;font-weight:500">Pick where it belongs, then tap +</div>
+        </div>` + optHtml;
       add.disabled=false; add.classList.add('on');
       add.onclick = async () => {
         const parentId = host.querySelector('.cpick').value || null;
         const id = await createCategory(childName, parentId, kinds);
         if(id) commit(id);
       };
-    } else { add.disabled=true; add.classList.remove('on'); }
+    } else { list.innerHTML = optHtml; add.disabled=true; add.classList.remove('on'); }
 
     host.querySelectorAll('.copt').forEach(b => b.onclick = () => commit(b.dataset.id));
   }
@@ -947,7 +958,9 @@ function openCategories(){
     <div style="font-weight:800;font-size:19px;letter-spacing:-.02em">Categories</div>
     <div style="color:var(--faint);font-size:13px;margin:3px 0 16px">
       Everything you can file a transaction under. Add or remove freely.</div>
-    <div class="f"><label>Add a category</label><div id="newCat"></div></div>
+    <div class="f"><label>Add a category or sub-category</label><div id="newCat"></div>
+      <p class="note" style="margin-top:7px">Type a name and choose where it goes — or use the
+        <b style="color:var(--accent)">+</b> on any category below to add straight underneath it.</p></div>
     <div id="catList" style="margin-top:16px"></div>
     <button class="btn sec" id="catBack" style="margin-top:6px">Back</button>`;
   mountCombo($('#newCat'), {kinds:null, value:null, onChange: async id => {
@@ -965,6 +978,7 @@ function openCategories(){
       return `<div class="mrow"><span class="nm">${esc(t.name)}${
                 kids.length?`<small>${kids.length} sub-categor${kids.length===1?'y':'ies'}</small>`:''}</span>
                 <span class="ct">${t.monthly_budget?money(t.monthly_budget)+'/mo':(used(t)||'')}</span>
+                <button class="addsub" data-sub="${t.id}" title="Add a sub-category">+</button>
                 <button class="del" data-del="${t.id}" title="Remove">×</button></div>` +
         kids.map(k=>`<div class="mrow sub"><span class="nm">${esc(k.name)}</span>
                 <span class="ct">${used(k)||''}</span>
@@ -973,9 +987,35 @@ function openCategories(){
     host.appendChild(g);
   });
   $$('#catList [data-del]').forEach(b => b.onclick = () => removeCategory(b.dataset.del));
+  $$('#catList [data-sub]').forEach(b => b.onclick = () => startSubCategory(b));
   $('#catBack').onclick = () => $('#settings').click();
   toggleSheet(true);
 }
+/* Adding a child directly under the parent you are looking at — which is where
+   anyone would expect to find it, rather than in a box at the top of the page. */
+function startSubCategory(btn){
+  const parent = S.catById[btn.dataset.sub];
+  const row = btn.closest('.mrow');
+  if(row.nextElementSibling && row.nextElementSibling.classList.contains('subadd')) return;
+  const box = document.createElement('div');
+  box.className = 'subadd';
+  box.innerHTML = `<input placeholder="New sub-category of ${esc(parent.name)}" autocomplete="off">
+                   <button class="ok" type="button">Add</button>
+                   <button class="no" type="button">Cancel</button>`;
+  row.after(box);
+  const inp = box.querySelector('input'); inp.focus();
+  const done = async () => {
+    const name = inp.value.trim(); if(!name) return box.remove();
+    box.querySelector('.ok').disabled = true;
+    const id = await createCategory(name, parent.id, [parent.kind]);
+    if(id){ await loadAll(); openCategories(); } else { box.querySelector('.ok').disabled = false; }
+  };
+  box.querySelector('.ok').onclick = done;
+  box.querySelector('.no').onclick = () => box.remove();
+  inp.onkeydown = e => { if(e.key==='Enter'){ e.preventDefault(); done(); }
+                         if(e.key==='Escape') box.remove(); };
+}
+
 async function removeCategory(id){
   const c = S.catById[id]; if(!c) return;
   const kids = S.cats.filter(x=>x.parent_id===id);
