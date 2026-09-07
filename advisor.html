@@ -217,11 +217,12 @@ section{animation:rise .26s cubic-bezier(.2,.7,.3,1)}
 .row{display:flex;align-items:center;gap:10px}
 .sp{justify-content:space-between}
 label{display:block;font-size:11.5px;font-weight:700;color:var(--muted);margin:0 0 6px;letter-spacing:.01em}
-input,select{
+input,select,textarea{
   width:100%;padding:12px 13px;border:1.5px solid var(--line-2);border-radius:11px;
   background:var(--surface);appearance:none;font-size:16px;font-weight:500;transition:border-color .15s,box-shadow .15s;
 }
-input:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3.5px var(--accent-soft)}
+textarea{line-height:1.45;min-height:76px}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3.5px var(--accent-soft)}
 .btn{
   background:var(--accent);color:var(--accent-ink);padding:13px 16px;border-radius:12px;
   font-weight:700;font-size:15px;width:100%;text-align:center;letter-spacing:-.01em;
@@ -405,6 +406,10 @@ h2:first-child{margin-top:2px}
         <h2 id="h-recs">What to look at</h2>
         <div id="secRecs"></div>
       </section>
+      <section aria-labelledby="h-notes">
+        <h2 id="h-notes">Tell Claude</h2>
+        <div id="secNotes"></div>
+      </section>
       <p class="note" id="stamp"></p>
     </div>
   </main>
@@ -446,6 +451,14 @@ const monthKey = d => String(d).slice(0,7);
 const monthName = k => { const [y,m]=String(k).split('-'); return new Date(y,m-1,1).toLocaleDateString('en-IN',{month:'short',year:'numeric'}); };
 const monthLong = k => { const [y,m]=String(k).split('-'); return new Date(y,m-1,1).toLocaleDateString('en-IN',{month:'long',year:'numeric'}); };
 const dateShort = d => d ? new Date(d+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short'}) : '';
+// created_at is a full timestamptz, not a plain date; parse it as-is and fall
+// back to "just now" rather than ever rendering "Invalid Date" at the user.
+const stampShort = ts => {
+  if(!ts) return 'just now';
+  const d = new Date(ts);
+  return isNaN(d.getTime()) ? 'just now'
+    : d.toLocaleDateString('en-IN',{day:'numeric',month:'short'});
+};
 function err(el,msg){ const n=$(el); if(n) n.innerHTML = msg ? `<div class="err">${esc(msg)}</div>` : ''; }
 
 /* ---------------- theme ---------------- */
@@ -621,9 +634,41 @@ function projectCard(row){
 /* ---- 3.2 the bills total for M+1 ----
    A recurring item charged to a credit card is ALREADY inside that card's
    cycle spend. Counting it again here is the double-count the draft had. */
+/* An override is the user telling us a figure they have actually seen. It wins
+   outright over the estimate, collapses the band to itself (there is no
+   uncertainty in a number you have read off a statement), and is marked so the
+   UI can show it as theirs rather than passing it off as a projection. */
+function applyOverride(proj, ov){
+  if(!ov) return proj;
+  const v = Number(ov.amount);
+  if(!(v >= 0)) return proj;
+  return Object.assign({}, proj, {
+    projected:R2(v), low:R2(v), high:R2(v),
+    method:'override', confidence:'high', reason:'you set this',
+    overridden:true, estimate_was:proj.projected, override_note:ov.note || null,
+    override_expires:ov.expires_on || null
+  });
+}
+/* Index overrides by kind+ref for the month being forecast. Anything expired is
+   dropped here rather than at the database, so a stale figure can never quietly
+   outlive the bill it described. */
+function overrideIndex(rows, forMonth, todayYmd){
+  const ix = {};
+  (rows||[]).forEach(o => {
+    if(monthKey(o.for_month) !== forMonth) return;
+    if(o.expires_on && todayYmd && o.expires_on < todayYmd) return;
+    ix[o.kind + ':' + (o.ref_id || '-')] = o;
+  });
+  return ix;
+}
+
 function computeBillsTotal(opts){
   const forMonth = opts.forMonth;                    // 'YYYY-MM'
-  const cards = (opts.cards||[]).map(c => ({row:c, proj:projectCard(c)}));
+  const ovx = opts.overrides || {};
+  const cards = (opts.cards||[]).map(c => ({
+    row:c,
+    proj:applyOverride(projectCard(c), ovx['card_bill:' + c.account_id])
+  }));
 
   // A card that bills monthly has a bill in EVERY month — not only in the one
   // its immediate next_due_date happens to land in. Counting only the latter
@@ -654,11 +699,16 @@ function computeBillsTotal(opts){
 
   // A not-yet-started cycle is genuinely uncertain: floor it at zero rather
   // than at cycle-to-date, and widen the top instead of pretending to a cap.
+  // An overridden card is a figure the user has read off a statement, so it
+  // does not widen the band and does not count as an "estimated" card.
   const low  = inMonth.reduce((s,c)=>s+c.proj.low ,0) + recurTotal;
   const high = inMonth.reduce((s,c)=>s+c.proj.high,0)
-             + nextCycle.reduce((s,c)=>s+Math.max(c.proj.high, c.proj.projected*1.35),0)
+             + nextCycle.reduce((s,c)=>s + (c.proj.overridden
+                 ? c.proj.high
+                 : Math.max(c.proj.high, c.proj.projected*1.35)),0)
              + recurTotal;
-  const anyLow = inMonth.some(c => c.proj.confidence === 'low');
+  const anyLow = inMonth.some(c => c.proj.confidence === 'low' && !c.proj.overridden);
+  const estimatedNext = nextCycle.filter(c => !c.proj.overridden).length;
   const cardCount = inMonth.length + nextCycle.length;
   return {
     amount_expected: R2(cardTotal + recurTotal),
@@ -666,9 +716,10 @@ function computeBillsTotal(opts){
     method: cardCount ? 'run_rate' : 'recurring_sum',
     // Never claim high confidence while any card's amount is a projection of a
     // cycle that has not been spent yet.
-    confidence: cardCount ? ((anyLow || nextCycle.length) ? 'low' : 'high') : 'high',
+    confidence: cardCount ? ((anyLow || estimatedNext) ? 'low' : 'high') : 'high',
     basis_txn_count: cardCount,
-    estimated_cards: nextCycle.length,
+    estimated_cards: estimatedNext,
+    overridden_cards: cards.filter(c => c.proj.overridden).length,
     cards, inMonth, nextCycle, recurring: recur
   };
 }
@@ -1041,7 +1092,8 @@ window.__khAdvisor = {
   completeMonths, forecastIncome, projectCard, computeBillsTotal, forecastDiscretionary,
   forecastNet, resolveBucket, isMappedCategory, DEFAULT_BUCKETS, BUCKET_OVERRIDES,
   computeEssential, emergencyFund, suggestMonthsTarget, confidenceOf, thinDataGate,
-  buildRecommendations, sortRecs, money, compact, esc, RENDER_CAP: 12
+  buildRecommendations, sortRecs, money, compact, esc,
+  applyOverride, overrideIndex, RENDER_CAP: 12
 };
 
 /* ============================================================================
@@ -1078,6 +1130,9 @@ async function loadAll(){
     trailing:      sb.from('category_trailing_avg').select('*'),
     salary:        sb.from('salary_credit_history').select('*'),
     recs:          sb.from('recommendations').select('*').eq('user_id',uid),
+    overrides:     sb.from('forecast_overrides').select('*').eq('user_id',uid),
+    notes:         sb.from('assistant_notes').select('*').eq('user_id',uid)
+                     .order('created_at',{ascending:false}).limit(30),
     accounts:      sb.from('accounts').select('id,name,type,issuer,last4,statement_day,due_day,credit_limit,is_active').eq('user_id',uid),
     categories:    sb.from('categories').select('id,parent_id,kind,name,is_active').eq('user_id',uid),
     forecasts:     sb.from('forecasts').select('*').eq('user_id',uid).order('computed_at',{ascending:false}).limit(8),
@@ -1151,7 +1206,9 @@ function computeAll(){
 
   const income = forecastIncome({today, salaryRows:S.salary, incomeProfile:S.incomeProfile});
   const forMonth = ymd(addMonths(monthStart(t), 1)).slice(0,7);
-  const bills = computeBillsTotal({forMonth, cards:S.cards, recurring:S.recurringDue});
+  const ovIndex = overrideIndex(S.overrides, forMonth, today);
+  const bills = computeBillsTotal({forMonth, cards:S.cards, recurring:S.recurringDue,
+                                   overrides:ovIndex});
   const disc  = forecastDiscretionary({monthly: win3.map(m => ({month:m, total:discByMonth[m]})),
                                        txnCount: discTxnCount});
   const net   = forecastNet(income, bills, disc);
@@ -1325,11 +1382,85 @@ function methodWords(kind, f){
                                                    : 'median of your last 3 complete months';
     case 'trailing_average':return kind==='income' ? 'average of your last '+f.n+' salary credits'
                                                    : 'average of the months with data';
+    case 'override':        return 'the figure you set';
     case 'run_rate':        return 'this cycle’s spend, extended to the full cycle';
     case 'recurring_sum':   return 'closed statement plus recurring items';
     default:                return 'estimated';
   }
 }
+/* One row per card in the bills breakdown. Tappable: a figure you can see but
+   not correct is worse than no figure, because the only thing you can do about
+   a wrong number is distrust the whole page. An overridden row says so, and
+   shows what the estimate had been, so nothing is hidden by the correction. */
+function cardRow(c, when){
+  const ov = c.proj.overridden;
+  const sub = ov
+    ? when + ' · you set this' + (c.proj.estimate_was != null
+        ? ' · estimate was ' + money(c.proj.estimate_was) : '')
+    : when + ' · ' + String(c.proj.reason||'').replace(/_/g,' ');
+  return `<div class="frow ovr" data-acct="${esc(c.row.account_id)}" role="button" tabindex="0"
+      aria-label="Set the bill for ${esc(c.row.account_name||'this card')}">
+    <span><span class="nm">${esc(c.row.account_name||'Card')}${ov?' <span class="tag warn">set</span>':''}</span>
+      <span class="sub">${esc(sub)} · tap to edit</span></span>
+    <span class="rt"><span class="amt num">${esc(money(c.proj.projected))}</span></span></div>`;
+}
+
+/* Editing a bill you have actually seen. Scoped to the card and the forecast
+   month, and expiring when the cycle closes, so a figure cannot outlive the
+   bill it described and go on masquerading as a live estimate. */
+function openOverrideSheet(accountId){
+  const entry = (F.bills.cards||[]).find(c => String(c.row.account_id) === String(accountId));
+  if(!entry) return;
+  const forMonth = F.forMonth;
+  const existing = (S.overrides||[]).find(o =>
+    o.kind === 'card_bill' && String(o.ref_id) === String(accountId) &&
+    monthKey(o.for_month) === forMonth);
+  const est = entry.proj.overridden ? entry.proj.estimate_was : entry.proj.projected;
+  // default expiry: the card's due date in the forecast month, else month end
+  const mStart = parseYmd(forMonth + '-01');
+  const dim = daysInMonth(mStart);
+  const expDay = entry.row.due_day ? Math.min(Number(entry.row.due_day), dim) : dim;
+  const expiry = forMonth + '-' + String(expDay).padStart(2,'0');
+
+  $('#sheetBody').innerHTML = `
+    <div style="font-weight:800;font-size:19px;letter-spacing:-.02em;margin-bottom:2px">${esc(entry.row.account_name||'Card')}</div>
+    <div style="color:var(--faint);font-size:13px;margin-bottom:14px">Bill for ${esc(monthName(forMonth))}</div>
+    <div class="f"><label for="ovAmt">What the bill actually is</label>
+      <input id="ovAmt" type="number" inputmode="decimal" min="0" step="1"
+             value="${esc(String(existing ? Number(existing.amount) : ''))}"
+             placeholder="${esc(String(Math.round(est||0)))}"></div>
+    <div class="f"><label for="ovNote">Note (optional)</label>
+      <input id="ovNote" type="text" maxlength="140" value="${esc(String(existing&&existing.note||''))}"
+             placeholder="e.g. statement came in higher"></div>
+    <p class="note">Khaata estimates ${esc(money(est||0))} from what has reached the ledger. Your figure replaces it for ${esc(monthName(forMonth))} and clears after ${esc(dateShort(expiry))}, so next month goes back to the live estimate.</p>
+    <button class="btn" id="ovSave" style="margin-top:8px">Save</button>
+    ${existing ? `<button class="btn sec" id="ovClear" style="margin-top:8px">Use the estimate instead</button>` : ''}
+    <div id="ovErr"></div>`;
+
+  $('#ovSave').onclick = async () => {
+    const v = Number($('#ovAmt').value);
+    if(!($('#ovAmt').value.trim() !== '' && v >= 0)) return err('#ovErr','Enter the amount, or tap “Use the estimate instead”.');
+    const b = $('#ovSave'); b.disabled = true; b.textContent = 'Saving…';
+    const {error} = await sb.from('forecast_overrides').upsert({
+      user_id:ME, kind:'card_bill', ref_id:accountId, for_month:forMonth+'-01',
+      amount:v, note:$('#ovNote').value.trim() || null, expires_on:expiry,
+      updated_at:new Date().toISOString()
+    }, {onConflict:'user_id,kind,ref_id,for_month'});
+    b.disabled = false; b.textContent = 'Save';
+    if(error) return err('#ovErr', error.message);
+    toggleSheet(false); await refresh(true);
+  };
+  const clr = $('#ovClear');
+  if(clr) clr.onclick = async () => {
+    clr.disabled = true; clr.textContent = 'Clearing…';
+    const {error} = await sb.from('forecast_overrides').delete().eq('id', existing.id);
+    clr.disabled = false; clr.textContent = 'Use the estimate instead';
+    if(error) return err('#ovErr', error.message);
+    toggleSheet(false); await refresh(true);
+  };
+  toggleSheet(true);
+}
+
 function openForecastSheet(kind){
   const f = kind==='income'?F.income : kind==='bills'?F.bills : kind==='discretionary'?F.disc : F.net;
   if(!f) return;
@@ -1354,15 +1485,11 @@ function openForecastSheet(kind){
   }
   if(kind === 'bills'){
     body += `<h2>What is in it</h2><div class="card">` +
-      (F.bills.inMonth||[]).map(c => `<div class="frow"><span><span class="nm">${esc(c.row.account_name||'Card')}</span>
-        <span class="sub">due ${esc(dateShort(c.row.next_due_date))} · ${esc(c.proj.reason.replace(/_/g,' '))}</span></span>
-        <span class="rt"><span class="amt num">${esc(money(c.proj.projected))}</span></span></div>`).join('') +
+      (F.bills.inMonth||[]).map(c => cardRow(c, 'due ' + dateShort(c.row.next_due_date))).join('') +
       // Cards billing in a cycle that has not started yet. They are in the
       // total, so they must be in the breakdown — otherwise the hero reads
       // ₹65,000 and this list adds up to ₹20,000.
-      (F.bills.nextCycle||[]).map(c => `<div class="frow"><span><span class="nm">${esc(c.row.account_name||'Card')}</span>
-        <span class="sub">next cycle${c.row.due_day?', due around day '+esc(String(c.row.due_day)):''} · estimated from current spend</span></span>
-        <span class="rt"><span class="amt num">${esc(money(c.proj.projected))}</span></span></div>`).join('') +
+      (F.bills.nextCycle||[]).map(c => cardRow(c, 'next cycle' + (c.row.due_day ? ', due around day '+c.row.due_day : ''))).join('') +
       (F.bills.recurring||[]).map(r => `<div class="frow"><span><span class="nm">${esc(r.name)}</span>
         <span class="sub">recurring, not on a card</span></span>
         <span class="rt"><span class="amt num">${esc(money(Number(r.amount_expected)||0))}</span></span></div>`).join('') +
@@ -1381,6 +1508,12 @@ function openForecastSheet(kind){
   body += `<button class="btn sec" id="shClose" style="margin-top:14px">Close</button>`;
   $('#sheetBody').innerHTML = body;
   $('#shClose').onclick = () => toggleSheet(false);
+  // card rows inside the bills sheet open the override editor
+  $$('#sheetBody .ovr').forEach(r => {
+    const open = () => openOverrideSheet(r.dataset.acct);
+    r.onclick = open;
+    r.onkeydown = e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); open(); } };
+  });
   toggleSheet(true);
 }
 
@@ -1775,6 +1908,75 @@ async function setRecStatus(key, status){
   renderRecs();
 }
 
+/* ---- notes queue ----
+   This app cannot push a message into a Claude session — nothing in a browser
+   can. So rather than a chat box that quietly goes nowhere, notes are written
+   to the database with the screen's context attached, and picked up the next
+   time Pratham talks to Claude. Slower than a chatbot, but real. */
+const NOTE_STATUS = {open:'waiting', in_progress:'in progress', done:'done', wont_do:'not doing'};
+
+function noteContext(){
+  // whatever the page knows right now, so "this is wrong" is still actionable
+  // days later without the user having to re-explain what they were looking at
+  const c = {month:F && F.forMonth ? F.forMonth : null};
+  if(F && F.bills){
+    c.bills_shown = F.bills.amount_expected;
+    c.cards = (F.bills.cards||[]).map(x => ({
+      name:x.row.account_name, shown:x.proj.projected, overridden:!!x.proj.overridden}));
+  }
+  if(F && F.income) c.income_shown = F.income.amount_expected;
+  if(F && F.net)    c.net_shown = F.net.amount_expected;
+  return c;
+}
+
+function renderNotes(){
+  const el = $('#secNotes');
+  const notes = (S.notes||[]);
+  const open = notes.filter(n => n.status === 'open' || n.status === 'in_progress');
+  el.innerHTML = `
+    <div class="card pad">
+      <label for="noteBody" style="display:block;font-size:12.5px;color:var(--faint);font-weight:600;margin-bottom:7px">
+        Something wrong, or something you know that Khaata doesn’t?</label>
+      <textarea id="noteBody" rows="3" maxlength="1000"
+        placeholder="e.g. Tata Neu bill is ₹18,400 this month, not what’s shown"
+        style="width:100%;box-sizing:border-box;resize:vertical"></textarea>
+      <button class="btn" id="noteSend" style="margin-top:9px">Send to Claude</button>
+      <p class="note">Saved with what’s on screen right now. Claude picks these up next time you open a session — ask it to “check my Khaata notes”.</p>
+      <div id="noteErr"></div>
+    </div>
+    ${notes.length ? `<div class="card" style="margin-top:12px">` + notes.slice(0,8).map(n => `
+      <div class="frow"><span style="min-width:0">
+        <span class="nm" style="white-space:normal">${esc(n.body)}</span>
+        <span class="sub">${esc(stampShort(n.created_at))} · ${esc(NOTE_STATUS[n.status]||n.status)}${n.response ? ' · Claude replied' : ''}</span>
+        ${n.response ? `<span class="sub" style="white-space:normal;color:var(--ink);margin-top:4px;display:block">${esc(n.response)}</span>` : ''}
+      </span>
+      <span class="rt">${n.status==='open' ? `<button class="btn sec sm" data-del="${esc(n.id)}" aria-label="Delete note">✕</button>` : ''}</span></div>`).join('')
+      + `</div>` : ''}
+    ${open.length ? `<div class="nudge">${open.length} note${open.length===1?'':'s'} waiting. Say “check my Khaata notes” in Claude.</div>` : ''}`;
+
+  $('#noteSend').onclick = async () => {
+    const body = $('#noteBody').value.trim();
+    if(!body) return err('#noteErr','Write what’s wrong first.');
+    const b = $('#noteSend'); b.disabled = true; b.textContent = 'Sending…';
+    const {data, error} = await sb.from('assistant_notes')
+      .insert({user_id:ME, body, source:'advisor', context:noteContext()})
+      .select().single();
+    b.disabled = false; b.textContent = 'Send to Claude';
+    if(error) return err('#noteErr', error.message);
+    $('#noteBody').value = '';
+    S.notes = [data].concat(S.notes||[]);
+    renderNotes();
+  };
+  $$('#secNotes [data-del]').forEach(x => x.onclick = async () => {
+    const id = x.dataset.del;
+    x.disabled = true;
+    const {error} = await sb.from('assistant_notes').delete().eq('id', id);
+    if(error){ x.disabled = false; return err('#noteErr', error.message); }
+    S.notes = (S.notes||[]).filter(n => String(n.id) !== String(id));
+    renderNotes();
+  });
+}
+
 /* ---- orchestration ---- */
 function renderAll(errors){
   const map = {
@@ -1782,10 +1984,12 @@ function renderAll(errors){
     secUpcoming: ['cards','recurringDue'],
     secEf:       ['safetyNet','txns'],
     secBudget:   ['plan','planItems','trailing'],
-    secRecs:     ['recs']
+    secRecs:     ['recs'],
+    secNotes:    ['notes']
   };
   const renderers = {secForecast:renderForecast, secUpcoming:renderUpcoming,
-                     secEf:renderEf, secBudget:renderBudget, secRecs:renderRecs};
+                     secEf:renderEf, secBudget:renderBudget, secRecs:renderRecs,
+                     secNotes:renderNotes};
   Object.keys(map).forEach(id => {
     const bad = map[id].filter(k => errors[k]);
     const el = document.getElementById(id);
