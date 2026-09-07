@@ -1,0 +1,1915 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f7f8fa">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Khaata">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Quicksand:wght@500;600;700&display=swap">
+<title>Khaata · Advisor</title>
+<style>
+/* ============================================================================
+   Themes copied verbatim from index.html so the two pages are the same app.
+   Every colour is painted explicitly — nothing is inherited from the device.
+   Every text colour was checked against its own surface and clears AA; the
+   worst cases are Ledger faint 4.65:1, Pookie faint 5.24:1,
+   Midnight faint 5.51:1, Terminal faint 6.69:1.
+   ========================================================================= */
+
+/* -- Midnight: deep indigo, violet glow. The default. --------------------- */
+:root, :root[data-theme=midnight]{
+  --ground:#0A0A18; --surface:#141430; --surface-2:#1C1C42; --surface-3:#272757;
+  --ink:#EDEDFF; --muted:#A6A6D4; --faint:#8A8ABE; --line:#26264E; --line-2:#37376B;
+  --accent:#9A8CFF; --accent-ink:#0A0A18; --accent-soft:#1E1B45; --accent-dim:#4A4090;
+  --income:#4FE0A0; --expense:#FF8F7E; --neutral:#A6A6D4;
+  --warn-bg:#33280F; --warn-ink:#E8C267;
+  --r:16px; --r-sm:11px;
+  --sh-1:0 1px 2px rgba(0,0,0,.5);
+  --sh-2:0 2px 6px rgba(0,0,0,.4),0 14px 34px -16px rgba(122,108,255,.45);
+  --glow:0 0 22px -6px var(--accent);
+  --font:"Plus Jakarta Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --font-num:"Plus Jakarta Sans",sans-serif;
+  --safe-b:env(safe-area-inset-bottom,0px);
+}
+:root[data-theme=midnight] body{
+  background-image:
+    radial-gradient(ellipse 120% 60% at 12% -6%, rgba(122,108,255,.30) 0, transparent 62%),
+    radial-gradient(ellipse 90% 50% at 92% 8%, rgba(60,200,255,.16) 0, transparent 58%),
+    radial-gradient(ellipse 110% 45% at 50% 104%, rgba(200,80,255,.16) 0, transparent 60%);
+  background-attachment:fixed;
+}
+:root[data-theme=midnight] .hero{
+  background:linear-gradient(142deg,#6E5CFF 0%,#4B2FD0 55%,#2A1470 100%);
+  box-shadow:var(--sh-2),0 0 44px -18px #7A6CFF;
+}
+:root[data-theme=midnight] .btn:not(.sec){box-shadow:var(--glow)}
+
+/* -- Ledger: green-bar accounting paper, ink, and a red rule. ------------- */
+:root[data-theme=ledger]{
+  --ground:#E7EEE4; --surface:#F8FBF5; --surface-2:#EDF3E9; --surface-3:#DDE7D8;
+  --ink:#16211A; --muted:#4E5C52; --faint:#66756B; --line:#D3E0CD; --line-2:#B6C9AE;
+  --accent:#8C2F2F; --accent-ink:#FFFFFF; --accent-soft:#F6E7E4; --accent-dim:#C9A0A0;
+  --income:#1B5E3A; --expense:#A5361F; --neutral:#4E5C52;
+  --warn-bg:#FBF0D5; --warn-ink:#7A5806;
+  --r:6px; --r-sm:4px;
+  --sh-1:0 1px 0 rgba(22,33,26,.08);
+  --sh-2:0 1px 0 rgba(22,33,26,.10),0 2px 0 -1px rgba(22,33,26,.05);
+  --glow:none;
+  --font:"Newsreader",Georgia,"Times New Roman",serif;
+  --font-num:"Plus Jakarta Sans",sans-serif;
+}
+:root[data-theme=ledger] body{font-weight:400;letter-spacing:0}
+:root[data-theme=ledger] h1,:root[data-theme=ledger] .hero .big,
+:root[data-theme=ledger] .stat .v,:root[data-theme=ledger] .rev-amt{font-weight:700}
+:root[data-theme=ledger] h2{font-family:var(--font-num);font-size:10.5px}
+:root[data-theme=ledger] .card,:root[data-theme=ledger] .mgroup,
+:root[data-theme=ledger] .arow,:root[data-theme=ledger] .part{border-radius:4px;border-width:1px}
+:root[data-theme=ledger] .btn{border-radius:4px;font-family:var(--font-num);font-size:14px}
+:root[data-theme=ledger] .hero{
+  background:#1B2B21;border-radius:5px;border-bottom:4px double #8C2F2F;box-shadow:none;
+}
+/* the green bar itself — alternating rules, exactly like the paper */
+:root[data-theme=ledger] .txn:nth-child(even),
+:root[data-theme=ledger] .drow:nth-child(even){background:#EAF1E6}
+:root[data-theme=ledger] .ava{border-radius:3px;font-family:var(--font-num);background:#FFF}
+:root[data-theme=ledger] .tag{border-radius:3px;font-family:var(--font-num)}
+:root[data-theme=ledger] nav{border-top:2px solid var(--ink)}
+:root[data-theme=ledger] nav button{border-radius:3px;font-family:var(--font-num)}
+:root[data-theme=ledger] .thead{font-family:var(--font-num);border-bottom:2px solid var(--ink)}
+:root[data-theme=ledger] .chip{border-radius:4px;font-family:var(--font-num)}
+
+/* -- Terminal: phosphor CRT. ---------------------------------------------- */
+:root[data-theme=terminal]{
+  --ground:#05090A; --surface:#0A1113; --surface-2:#0F1B1D; --surface-3:#16292B;
+  --ink:#CFF5DA; --muted:#7FBF97; --faint:#69A681; --line:#173029; --line-2:#22453A;
+  --accent:#3BFF95; --accent-ink:#04140B; --accent-soft:#0C2418; --accent-dim:#1C6B44;
+  --income:#3BFF95; --expense:#FF6B60; --neutral:#7FBF97;
+  --warn-bg:#2A2409; --warn-ink:#F2D65C;
+  --r:3px; --r-sm:2px;
+  --sh-1:none;
+  --sh-2:0 0 0 1px var(--line);
+  --glow:0 0 14px -3px var(--accent);
+  --font:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --font-num:"JetBrains Mono",ui-monospace,monospace;
+}
+:root[data-theme=terminal] body{font-size:14px;letter-spacing:-.01em;font-weight:400}
+:root[data-theme=terminal] .card,:root[data-theme=terminal] .mgroup,
+:root[data-theme=terminal] .arow,:root[data-theme=terminal] .btn,
+:root[data-theme=terminal] input,:root[data-theme=terminal] select,
+:root[data-theme=terminal] textarea,:root[data-theme=terminal] .chip{border-radius:2px}
+:root[data-theme=terminal] h1::before{content:"$ ";color:var(--accent)}
+:root[data-theme=terminal] h2::before{content:"// ";opacity:.7}
+:root[data-theme=terminal] .hero{
+  background:var(--surface);border:1px solid var(--accent-dim);
+  box-shadow:inset 0 0 40px -18px var(--accent);color:var(--ink);
+}
+:root[data-theme=terminal] .hero .big::after{
+  content:"_";color:var(--accent);animation:blink 1.15s steps(1) infinite;margin-left:3px;
+}
+@keyframes blink{50%{opacity:0}}
+:root[data-theme=terminal] .hero .lab,:root[data-theme=terminal] .hero .cap{color:var(--muted);opacity:1}
+:root[data-theme=terminal] .split{background:var(--surface-3)}
+:root[data-theme=terminal] .split .a{background:var(--accent)}
+:root[data-theme=terminal] .split .b{background:var(--accent-dim)}
+:root[data-theme=terminal] .legend{color:var(--muted)}
+:root[data-theme=terminal] .legend i{border-radius:0}
+:root[data-theme=terminal] .ava{border-radius:2px;background:var(--surface-2)}
+:root[data-theme=terminal] .btn:not(.sec){box-shadow:var(--glow)}
+/* scanlines, faint enough to read straight through */
+:root[data-theme=terminal] body::after{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:60;
+  background:repeating-linear-gradient(180deg,rgba(0,0,0,.20) 0 1px,transparent 1px 3px);
+}
+@media (prefers-reduced-motion:reduce){
+  :root[data-theme=terminal] .hero .big::after{animation:none}
+}
+
+/* ============================ Pookie mode ============================
+   A committed single look, so no dark variant — every colour is painted
+   explicitly. All semantic colours pass AA text contrast on this ground
+   (ink 12.6:1, muted 5.4:1, faint 4.6:1, accent 4.9:1, income 5.0:1,
+   expense 5.6:1), which matters because amounts render at 14.5px. */
+:root[data-theme=pookie]{
+  --ground:#FFF5F7; --surface:#FFFFFF; --surface-2:#FDECF1; --surface-3:#F8DDE6;
+  --ink:#3A2A31; --muted:#7A5F6A; --faint:#7F5F6B; --line:#F6DCE4; --line-2:#EFC4D3;
+  --accent:#B83E74; --accent-ink:#FFFFFF; --accent-soft:#FCE4EC; --accent-dim:#EFC0D5;
+  --income:#197A52; --expense:#A8442E; --neutral:#7A5F6A;
+  --warn-bg:#FFF1D6; --warn-ink:#8A6212;
+  --r:22px; --r-sm:16px;
+  --sh-1:0 1px 2px rgba(184,62,116,.07);
+  --sh-2:0 3px 6px rgba(184,62,116,.06),0 14px 30px -16px rgba(184,62,116,.3);
+}
+:root[data-theme=pookie] body{
+  font-family:"Quicksand","Plus Jakarta Sans",-apple-system,sans-serif;
+  font-weight:600;letter-spacing:0;
+  background-image:
+    radial-gradient(circle at 12% 8%, rgba(255,214,229,.55) 0, transparent 34%),
+    radial-gradient(circle at 88% 22%, rgba(214,240,226,.5) 0, transparent 32%),
+    radial-gradient(circle at 50% 96%, rgba(255,228,236,.6) 0, transparent 40%);
+  background-attachment:fixed;
+}
+:root[data-theme=pookie] h1,:root[data-theme=pookie] .hero .big,
+:root[data-theme=pookie] .rev-amt,:root[data-theme=pookie] .stat .v{letter-spacing:-.01em}
+:root[data-theme=pookie] .btn{border-radius:99px}
+:root[data-theme=pookie] .chip{border-radius:99px;border-width:2px}
+:root[data-theme=pookie] .hero{
+  background:linear-gradient(150deg,#F49BC0 0%,#B83E74 62%,#8E2D5A 100%);
+}
+:root[data-theme=pookie] .hero::after{
+  content:"🐼";position:absolute;right:16px;top:12px;font-size:34px;opacity:.9;
+  animation:peek 5s ease-in-out infinite;
+}
+:root[data-theme=pookie] .hero{position:relative;overflow:hidden}
+@keyframes peek{0%,88%,100%{transform:translateY(0) rotate(0)}92%{transform:translateY(-5px) rotate(-9deg)}96%{transform:translateY(-5px) rotate(9deg)}}
+:root[data-theme=pookie] .card{border-width:2px}
+:root[data-theme=pookie] .empty .big{opacity:1;font-size:38px}
+:root[data-theme=pookie] .bar .fill{background:linear-gradient(90deg,#E876A6,#B83E74)}
+:root[data-theme=pookie] .prog i{background:linear-gradient(90deg,#F49BC0,#B83E74)}
+
+/* ---------- base, copied from index.html ---------- */
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{
+  background:var(--ground);color:var(--ink);
+  font-family:var(--font);
+  font-size:15px;line-height:1.5;letter-spacing:-.005em;
+  -webkit-font-smoothing:antialiased;overscroll-behavior-y:none;
+}
+/* Numerals are Plus Jakarta Sans in EVERY theme, tabular, so columns of money
+   never reflow when a theme swaps the body face. This is deliberately NOT
+   var(--font-num): Terminal points that at JetBrains Mono, which is not loaded
+   and would fall back to a system mono with different digit metrics. */
+.num{font-family:"Plus Jakarta Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+     font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+button,input,select,textarea{font:inherit;color:inherit;font-family:inherit}
+button{cursor:pointer;border:0;background:none}
+a{color:var(--accent);text-decoration:none}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:8px}
+.hide{display:none!important}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* ---------- shell ---------- */
+#app{display:flex;flex-direction:column;min-height:100%}
+header{
+  position:sticky;top:0;z-index:20;
+  background:color-mix(in srgb,var(--surface) 88%,transparent);
+  backdrop-filter:saturate(180%) blur(14px);-webkit-backdrop-filter:saturate(180%) blur(14px);
+  border-bottom:1px solid var(--line);padding:12px 16px;
+  padding-top:calc(12px + env(safe-area-inset-top,0px));
+  display:flex;align-items:center;gap:10px;
+}
+header h1{font-size:19px;margin:0;font-weight:800;letter-spacing:-.03em;line-height:1.15}
+header .sub{font-size:12px;color:var(--faint);font-weight:500;margin-top:1px}
+main{flex:1;padding-bottom:calc(40px + var(--safe-b))}
+.wrap{max-width:720px;margin:0 auto;padding:16px}
+section{animation:rise .26s cubic-bezier(.2,.7,.3,1)}
+@keyframes rise{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+
+/* ---------- generic ---------- */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh-2)}
+.pad{padding:18px}
+.row{display:flex;align-items:center;gap:10px}
+.sp{justify-content:space-between}
+label{display:block;font-size:11.5px;font-weight:700;color:var(--muted);margin:0 0 6px;letter-spacing:.01em}
+input,select{
+  width:100%;padding:12px 13px;border:1.5px solid var(--line-2);border-radius:11px;
+  background:var(--surface);appearance:none;font-size:16px;font-weight:500;transition:border-color .15s,box-shadow .15s;
+}
+input:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3.5px var(--accent-soft)}
+.btn{
+  background:var(--accent);color:var(--accent-ink);padding:13px 16px;border-radius:12px;
+  font-weight:700;font-size:15px;width:100%;text-align:center;letter-spacing:-.01em;
+  transition:transform .12s,filter .15s;
+}
+.btn:active{transform:scale(.982);filter:brightness(.95)}
+.btn:disabled{opacity:.55}
+.btn.sec{background:var(--surface-2);color:var(--ink);border:1.5px solid var(--line)}
+.btn.sm{width:auto;padding:8px 13px;font-size:13px;border-radius:10px}
+.err{background:var(--warn-bg);color:var(--warn-ink);padding:11px 13px;border-radius:11px;font-size:13.5px;margin-top:11px;font-weight:500}
+/* A prompt, not a failure. "Your balance is 45 days old" must not look — or be
+   classed — like "this section could not load". Quieter than .err: the page's
+   own surface with an accent edge, so it reads as something to attend to rather
+   than something that went wrong. */
+.nudge{background:var(--surface-2);color:var(--ink);border-left:3px solid var(--accent);
+  padding:10px 13px;border-radius:8px;font-size:13px;margin-top:11px;font-weight:500}
+.empty{text-align:center;color:var(--faint);padding:40px 22px;font-size:14px;font-weight:500}
+.empty .big{display:block;font-size:30px;margin-bottom:10px;opacity:.5}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+h2{font-size:11.5px;text-transform:uppercase;letter-spacing:.09em;color:var(--faint);margin:26px 0 10px;font-weight:800}
+h2:first-child{margin-top:2px}
+.note{font-size:12.5px;color:var(--faint);margin-top:10px;line-height:1.5;font-weight:500}
+.gate{max-width:430px;margin:7vh auto;padding:18px}
+.f{margin-bottom:14px}
+
+/* ---------- hero ---------- */
+.hero{
+  background:linear-gradient(158deg,var(--accent) 0%,color-mix(in srgb,var(--accent) 74%,#111428) 100%);
+  color:#fff;border-radius:var(--r);padding:20px;box-shadow:var(--sh-2);margin-bottom:12px;
+}
+.hero .lab{font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;opacity:.72}
+.hero .big{font-size:35px;font-weight:800;letter-spacing:-.035em;line-height:1.08;margin:5px 0 3px}
+.hero .cap{font-size:12.5px;opacity:.78;font-weight:500}
+
+/* ---------- rows / stats ---------- */
+.frow{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:12px;width:100%;
+  padding:13px 14px;border-bottom:1px solid var(--line);text-align:left;transition:background .14s;
+}
+.frow:last-child{border-bottom:0}
+.frow:active{background:var(--surface-2)}
+.frow .nm{font-weight:700;font-size:14.5px;letter-spacing:-.012em;display:block}
+.frow .sub{font-size:12px;color:var(--faint);font-weight:500;margin-top:2px;display:block}
+.frow .rt{text-align:right;white-space:nowrap;flex:none}
+.frow .amt{font-weight:800;font-size:15px;letter-spacing:-.02em;display:block}
+.frow .band{font-size:11.5px;color:var(--faint);font-weight:600;margin-top:2px;display:block}
+.amt.pos{color:var(--income)} .amt.neg{color:var(--expense)}
+.stat{display:grid;gap:3px;padding:15px}
+.stat .k{font-size:11px;color:var(--faint);font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+.stat .v{font-size:24px;font-weight:800;letter-spacing:-.03em}
+.tag{background:var(--surface-2);border-radius:6px;padding:2px 7px;font-size:11px;color:var(--muted);font-weight:600}
+.tag.warn{background:var(--warn-bg);color:var(--warn-ink);font-weight:700}
+.chip{
+  background:var(--surface-2);border:1.5px solid var(--line);border-radius:99px;
+  padding:7px 12px;font-size:12.5px;font-weight:650;transition:all .14s;display:inline-block;
+}
+.chip.warn{background:var(--warn-bg);color:var(--warn-ink);border-color:transparent}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+
+/* ---------- bars ---------- */
+.bars{display:grid;gap:13px;padding:16px}
+.bar .top{display:flex;justify-content:space-between;gap:10px;font-size:14px;margin-bottom:6px;font-weight:600}
+.bar .top .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar .top .vl{font-weight:800;white-space:nowrap;letter-spacing:-.02em}
+.bar .track{height:10px;background:var(--surface-2);border-radius:5px;overflow:hidden;position:relative}
+.bar .fill{height:100%;background:var(--accent);border-radius:0 5px 5px 0;min-width:4px;
+  transition:width .45s cubic-bezier(.2,.8,.3,1)}
+.bar .fill.over{background:var(--expense)}
+.bar .mark{position:absolute;top:-2px;bottom:-2px;width:1.5px;background:var(--ink);opacity:.45}
+.bar .sub{font-size:11.5px;color:var(--faint);margin-top:4px;font-weight:500}
+.prog{height:8px;background:var(--surface-2);border-radius:99px;overflow:hidden;margin:12px 0 10px}
+.prog i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .35s}
+
+/* ---------- recommendations ---------- */
+.rec{display:grid;grid-template-columns:12px 1fr;gap:11px;padding:14px;border-bottom:1px solid var(--line)}
+.rec:last-child{border-bottom:0}
+.rec .dot{width:9px;height:9px;border-radius:99px;margin-top:6px;background:var(--muted)}
+.rec .dot.critical{background:var(--expense)}
+.rec .dot.warning{background:var(--warn-ink)}
+.rec .t{font-weight:700;font-size:14.5px;letter-spacing:-.012em}
+.rec .d{font-size:13px;color:var(--muted);margin-top:3px;font-weight:500}
+.rec .acts{display:flex;gap:14px;margin-top:9px}
+.rec .acts button{font-size:12.5px;font-weight:700;color:var(--accent);padding:2px 0}
+.rec.done{opacity:.55}
+
+/* ---------- skeleton ---------- */
+.sk{height:13px;border-radius:6px;background:var(--surface-2);margin:10px 14px;
+    animation:sh 1.2s ease-in-out infinite}
+.sk.w1{width:58%} .sk.w2{width:82%} .sk.w3{width:40%}
+@keyframes sh{0%,100%{opacity:.5}50%{opacity:1}}
+@media (prefers-reduced-motion:reduce){.sk{animation:none}}
+
+/* ---------- sheet ---------- */
+.scrim{position:fixed;inset:0;background:rgba(8,10,15,.5);z-index:40;opacity:0;pointer-events:none;transition:opacity .2s;backdrop-filter:blur(2px)}
+.scrim.on{opacity:1;pointer-events:auto}
+.sheet{
+  position:fixed;left:0;right:0;bottom:0;z-index:50;background:var(--surface);
+  border-radius:22px 22px 0 0;border-top:1px solid var(--line);
+  max-height:90vh;overflow-y:auto;transform:translateY(100%);
+  transition:transform .26s cubic-bezier(.24,.85,.32,1);
+  padding:8px 18px calc(22px + var(--safe-b));box-shadow:0 -12px 40px -18px rgba(0,0,0,.5);
+}
+.sheet.on{transform:none}
+.grab{width:38px;height:4.5px;background:var(--line-2);border-radius:99px;margin:7px auto 16px}
+.modes{display:grid;gap:10px}
+.mode{
+  display:grid;grid-template-columns:44px minmax(0,1fr) 22px;gap:13px;align-items:center;
+  padding:13px;border:2px solid var(--line);border-radius:14px;text-align:left;
+  background:var(--surface);transition:border-color .15s,background .15s;width:100%;
+}
+.mode[aria-checked=true]{border-color:var(--accent);background:var(--accent-soft)}
+.mode .sw{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:20px;border:1px solid var(--line)}
+.mode .nm{font-weight:700;font-size:15px;display:block;line-height:1.3}
+.mode .ds{font-size:12.5px;color:var(--faint);font-weight:500;margin-top:2px;display:block;line-height:1.35}
+.mode .tick{color:var(--accent);font-weight:800;font-size:17px;opacity:0}
+.mode[aria-checked=true] .tick{opacity:1}
+.savechip{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + var(--safe-b));
+  z-index:70;background:var(--warn-bg);color:var(--warn-ink);padding:9px 14px;border-radius:99px;
+  font-size:12.5px;font-weight:700;box-shadow:var(--sh-2)}
+</style>
+</head>
+<body>
+
+<!-- ============ setup / auth gate ============ -->
+<div id="gate" class="gate">
+  <h1 style="font-size:27px;margin:0 0 4px;letter-spacing:-.02em">Khaata</h1>
+  <p style="color:var(--muted);margin:0 0 22px;font-size:14px">Advisor.</p>
+
+  <div id="stepCfg" class="card pad hide">
+    <div class="f"><label for="url">Supabase project URL</label>
+      <input id="url" placeholder="https://xxxx.supabase.co" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
+    <div class="f"><label for="key">Anon / publishable key</label>
+      <input id="key" placeholder="sb_publishable_...  or  eyJhbGci..." autocapitalize="off" autocorrect="off" spellcheck="false"></div>
+    <button class="btn" id="saveCfg">Connect</button>
+    <p class="note">Find both in Supabase → Settings → API. Both are safe here: the publishable/anon key is <em>designed</em> to sit in a browser — row-level security is what protects your data, not the key. Never paste the <em>secret</em> or <em>service_role</em> key into anything.</p>
+    <div id="cfgErr"></div>
+  </div>
+
+  <div id="stepLogin" class="card pad hide">
+    <div class="f"><label for="em">Email</label>
+      <input id="em" type="email" autocomplete="username" autocapitalize="off"></div>
+    <div class="f"><label for="pw">Password</label>
+      <input id="pw" type="password" autocomplete="current-password"></div>
+    <button class="btn" id="doLogin">Sign in</button>
+    <div id="loginErr"></div>
+    <button class="btn sec sm" id="resetCfg" style="margin-top:12px">Change project</button>
+  </div>
+</div>
+
+<!-- ============ app ============ -->
+<div id="app" class="hide">
+  <header>
+    <a class="btn sec sm" href="index.html" aria-label="Back to the ledger" style="flex:none">←</a>
+    <div style="flex:1;min-width:0">
+      <h1>Advisor</h1>
+      <div class="sub" id="vsub">Looking ahead</div>
+    </div>
+    <button class="btn sec sm" id="settings" aria-label="Appearance">⚙</button>
+    <button class="btn sec sm" id="recalc" aria-label="Recalculate">↻</button>
+  </header>
+
+  <main>
+    <div class="wrap">
+      <section aria-labelledby="h-forecast">
+        <h2 id="h-forecast">Next month</h2>
+        <div id="secForecast"></div>
+      </section>
+      <section aria-labelledby="h-upcoming">
+        <h2 id="h-upcoming">Upcoming</h2>
+        <div id="secUpcoming"></div>
+      </section>
+      <section aria-labelledby="h-ef">
+        <h2 id="h-ef">Emergency fund</h2>
+        <div id="secEf"></div>
+      </section>
+      <section aria-labelledby="h-budget">
+        <h2 id="h-budget">Budget</h2>
+        <div id="secBudget"></div>
+      </section>
+      <section aria-labelledby="h-recs">
+        <h2 id="h-recs">What to look at</h2>
+        <div id="secRecs"></div>
+      </section>
+      <p class="note" id="stamp"></p>
+    </div>
+  </main>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="Details"><div class="grab"></div><div id="sheetBody"></div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+(function(){
+"use strict";
+const $  = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const LS = { url:'kh.url', key:'kh.key' };
+
+let sb = null, ME = null;
+let S = {
+  profile:null, incomeProfile:null, safetyNet:null,
+  plan:null, planItems:[], cards:[], recurringDue:[], recurring:[],
+  trailing:[], salary:[], recs:[], accounts:[], categories:[], txns:[],
+  forecasts:[], txnCount:0, firstTxnDate:null
+};
+let F = null;   // computed forecast bundle
+let RECS = [];  // computed recommendations
+let showDismissed = false;
+
+/* ---------------- money & text ---------------- */
+const fmtFull = new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:0});
+const fmt2    = new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',minimumFractionDigits:2});
+const money  = n => fmtFull.format(n||0);
+const money2 = n => fmt2.format(n||0);
+const pct = (a,b) => { if(!b) return '0%'; const r=a/b*100; return r>0 && r<1 ? '<1%' : Math.round(r)+'%'; };
+const compact = n => n>=100000 ? (n/100000).toFixed(n>=1000000?0:1)+'L'
+                   : n>=1000   ? (n/1000).toFixed(n>=10000?0:1)+'k'
+                   : Math.round(n).toString();
+const esc = s => String(s??'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const monthKey = d => String(d).slice(0,7);
+const monthName = k => { const [y,m]=String(k).split('-'); return new Date(y,m-1,1).toLocaleDateString('en-IN',{month:'short',year:'numeric'}); };
+const monthLong = k => { const [y,m]=String(k).split('-'); return new Date(y,m-1,1).toLocaleDateString('en-IN',{month:'long',year:'numeric'}); };
+const dateShort = d => d ? new Date(d+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short'}) : '';
+function err(el,msg){ const n=$(el); if(n) n.innerHTML = msg ? `<div class="err">${esc(msg)}</div>` : ''; }
+
+/* ---------------- theme ---------------- */
+const THEMES = {
+  midnight:{icon:'🌌', name:'Midnight',  desc:'Deep indigo with a violet glow. Easy at night.'},
+  pookie:  {icon:'🐼', name:'Pookie',    desc:'Pandas, blush pink and a bit of confetti.'},
+  ledger:  {icon:'📗', name:'Ledger',    desc:'Green-bar accounting paper, ink and a red rule.'},
+  terminal:{icon:'🖥️', name:'Terminal',  desc:'Phosphor green on black, monospaced, scanlines.'}
+};
+const DEFAULT_THEME = 'midnight';
+const SWATCH = {
+  midnight:'background:linear-gradient(135deg,#6E5CFF,#2A1470);border-color:#4A4090',
+  pookie:  'background:linear-gradient(135deg,#FFF5F7,#F49BC0);border-color:#EFC4D3',
+  ledger:  'background:linear-gradient(135deg,#F8FBF5,#E7EEE4);border-color:#B6C9AE',
+  terminal:'background:#05090A;color:#3BFF95;border-color:#1C6B44'
+};
+// Earlier builds stored auto/light/dark. Map them onto the nearest of the new
+// four rather than silently dropping people back to the default.
+const LEGACY_THEME = {auto:'midnight', dark:'midnight', light:'ledger'};
+
+function applyTheme(t){
+  if(!THEMES[t]) t = LEGACY_THEME[t] || DEFAULT_THEME;
+  document.documentElement.setAttribute('data-theme', t);
+  const meta=document.querySelector('meta[name=theme-color]');
+  if(meta) meta.setAttribute('content',
+    getComputedStyle(document.body).backgroundColor || '#0A0A18');
+  try{ localStorage.setItem('kh.theme', t); }catch(_){}
+}
+function currentTheme(){
+  let t; try{ t = localStorage.getItem('kh.theme'); }catch(_){}
+  return THEMES[t] ? t : (LEGACY_THEME[t] || DEFAULT_THEME);
+}
+function toggleSheet(on){ $('#sheet').classList.toggle('on',on); $('#scrim').classList.toggle('on',on); }
+$('#scrim').onclick=()=>toggleSheet(false);
+document.addEventListener('keydown', e => { if(e.key==='Escape') toggleSheet(false); });
+
+/* ============================================================================
+   PURE LOGIC — no DOM, no network. Exposed on window.__khAdvisor so it can be
+   unit-tested headlessly without a database.
+   ========================================================================= */
+
+const R2 = n => Math.round(n);
+const num = v => (v===null||v===undefined||v==='') ? null : Number(v);
+
+function median(a){
+  const v = a.filter(x => x!==null && x!==undefined && !Number.isNaN(x)).slice().sort((x,y)=>x-y);
+  if(!v.length) return null;
+  const m = Math.floor(v.length/2);
+  return v.length % 2 ? v[m] : (v[m-1]+v[m])/2;
+}
+function mean(a){
+  const v = a.filter(x => x!==null && x!==undefined && !Number.isNaN(x));
+  return v.length ? v.reduce((s,x)=>s+x,0)/v.length : null;
+}
+function stddevSamp(a){
+  const v = a.filter(x => x!==null && x!==undefined && !Number.isNaN(x));
+  if(v.length < 2) return null;
+  const m = mean(v);
+  return Math.sqrt(v.reduce((s,x)=>s+(x-m)*(x-m),0)/(v.length-1));
+}
+
+/* ---- calendar helpers (all local-date, no UTC round trips) ---- */
+function ymd(d){
+  const p = n => String(n).padStart(2,'0');
+  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());
+}
+function parseYmd(s){ const [y,m,d] = String(s).slice(0,10).split('-').map(Number); return new Date(y,m-1,d); }
+function monthStart(d){ return new Date(d.getFullYear(), d.getMonth(), 1); }
+function addMonths(d,n){ return new Date(d.getFullYear(), d.getMonth()+n, 1); }
+function daysInMonth(d){ return new Date(d.getFullYear(), d.getMonth()+1, 0).getDate(); }
+function dayDiff(a,b){ return Math.round((parseYmd(a) - parseYmd(b)) / 86400000); }
+/** The N complete calendar months strictly before the month containing `today`. */
+function completeMonths(today, n){
+  const out = [];
+  for(let i=n;i>=1;i--){ const m = addMonths(monthStart(today), -i); out.push(ymd(m).slice(0,7)); }
+  return out;
+}
+
+/* ---- 3.1 income ---- */
+function forecastIncome(opts){
+  const today = opts.today ? parseYmd(opts.today) : new Date();
+  const win = completeMonths(today, 6);
+  const byMonth = {};
+  (opts.salaryRows||[]).forEach(r => { byMonth[monthKey(r.month)] = r; });
+  const rows   = win.map(k => byMonth[k]).filter(Boolean);
+  const values = rows.map(r => num(r.base_total)).filter(v => v !== null && v > 0);
+  const n = values.length;
+  const txnCount = rows.reduce((s,r)=>s+(Number(r.txn_count)||0),0);
+  const variable = rows.map(r => num(r.variable_total)||0).filter(v => v > 0);
+  const p = opts.incomeProfile || null;
+
+  const out = {
+    window: win, values, n, basis_txn_count: txnCount,
+    variability_pct: null, pay_day: null,
+    variable_months: variable.length,
+    variable_low: variable.length ? Math.min.apply(null,variable) : null,
+    variable_high: variable.length ? Math.max.apply(null,variable) : null,
+    amount_expected: null, amount_low: null, amount_high: null,
+    method: 'insufficient_data', confidence: 'none'
+  };
+
+  if(n >= 3){
+    const m = mean(values), sd = stddevSamp(values);
+    out.variability_pct = (m && sd !== null) ? Math.round(sd/m*100) : null;
+  }
+  // pay day: the user's stated day, else the modal day across the window.
+  if(p && p.pay_day) out.pay_day = Number(p.pay_day);
+  else {
+    const tally = {};
+    rows.forEach(r => { if(r.modal_pay_day){ tally[r.modal_pay_day] = (tally[r.modal_pay_day]||0)+1; } });
+    const best = Object.keys(tally).sort((a,b)=>tally[b]-tally[a] || Number(a)-Number(b))[0];
+    out.pay_day = best ? Number(best) : null;
+  }
+
+  // (a) stated amount wins outright
+  if(p && p.auto_estimate === false && num(p.expected_amount) !== null){
+    const v = R2(num(p.expected_amount));
+    return Object.assign(out, {amount_expected:v, amount_low:v, amount_high:v,
+      method:'fixed', confidence:'high'});
+  }
+  if(n === 0) return out;                                   // (e) no forecast
+  const lo = Math.min.apply(null, values), hi = Math.max.apply(null, values);
+  // The observed extremes are worth showing, but they are not a forecast band:
+  // taking min/max put the bonus month straight back into the range the median
+  // exists to exclude ("you'll earn between ₹90,000 and ₹2,50,000"). The band is
+  // median +/- 1.5 MAD instead — robust to a one-off spike the same way the
+  // median is — clamped so it can never claim more than was actually seen.
+  out.observed_low = R2(lo); out.observed_high = R2(hi);
+  if(n >= 3){
+    const m = median(values);
+    const mad = median(values.map(v => Math.abs(v - m)));
+    return Object.assign(out, {amount_expected:R2(m),
+      amount_low:  R2(Math.max(lo, m - 1.5 * mad)),
+      amount_high: R2(Math.min(hi, m + 1.5 * mad)),
+      method:'trailing_median', confidence:'high'});
+  }
+  if(n === 2) return Object.assign(out, {amount_expected:R2(mean(values)), amount_low:R2(lo),
+    amount_high:R2(hi), method:'trailing_average', confidence:'low'});
+  return Object.assign(out, {amount_expected:R2(values[0]), amount_low:R2(values[0]*0.85),
+    amount_high:R2(values[0]*1.15), method:'trailing_average', confidence:'low'});  // (d) n === 1
+}
+
+/* ---- 3.2 one card's projected bill ----
+   The cap and the floor are the point: one big early purchase must not
+   extrapolate into a fantasy bill, and the projection can never fall below
+   what has already been charged. */
+function projectCard(row){
+  const ctd = Number(row.cycle_to_date)||0;
+  const de  = Number(row.days_elapsed)||0;
+  const dic = Math.max(Number(row.days_in_cycle)||0, 1);
+  const lim = num(row.credit_limit);
+
+  if(row.date_basis === 'rolling_30d')
+    return {projected:R2(ctd), low:R2(ctd), high:R2(ctd*1.5),
+            method:'run_rate', confidence:'low', reason:'rolling_30d'};
+  if(row.is_partial === false)
+    return {projected:R2(ctd), low:R2(ctd), high:R2(ctd),
+            method:'recurring_sum', confidence:'high', reason:'closed_cycle'};
+  if(de < 5 || ctd === 0)
+    return {projected:R2(ctd), low:R2(ctd), high:R2(ctd*2),
+            method:'run_rate', confidence:'low', reason:'too_early'};
+
+  const raw = ctd * dic / de;
+  let projected = Math.min(raw, ctd * 1.75);
+  projected = Math.max(projected, ctd);
+  let high = projected * 1.20;
+  if(lim !== null) high = Math.min(high, lim);
+  high = Math.max(high, projected);
+  return {projected:R2(projected), low:R2(ctd), high:R2(high),
+          method:'run_rate', confidence:'high', reason:'run_rate'};
+}
+
+/* ---- 3.2 the bills total for M+1 ----
+   A recurring item charged to a credit card is ALREADY inside that card's
+   cycle spend. Counting it again here is the double-count the draft had. */
+function computeBillsTotal(opts){
+  const forMonth = opts.forMonth;                    // 'YYYY-MM'
+  const cards = (opts.cards||[]).map(c => ({row:c, proj:projectCard(c)}));
+
+  // A card that bills monthly has a bill in EVERY month — not only in the one
+  // its immediate next_due_date happens to land in. Counting only the latter
+  // reported a ₹30,000 card as ₹219 (its due date sat in the current month, so
+  // it vanished from next month's forecast) and labelled that high confidence.
+  //   inMonth   — due inside forMonth: the cycle we can actually measure.
+  //   nextCycle — due before forMonth, so forMonth's bill is the FOLLOWING
+  //               cycle. That spending has not happened yet, so the current run
+  //               rate is only a proxy: it is counted, but confidence drops and
+  //               the band widens to say so.
+  const inMonth = cards.filter(c =>
+    c.row.next_due_date && monthKey(c.row.next_due_date) === forMonth);
+  const nextCycle = cards.filter(c =>
+    c.row.due_day != null &&
+    !(c.row.next_due_date && monthKey(c.row.next_due_date) >= forMonth));
+  const cardTotal = inMonth.reduce((s,c)=>s+c.proj.projected,0)
+                  + nextCycle.reduce((s,c)=>s+c.proj.projected,0);
+
+  const recur = (opts.recurring||[]).filter(r =>
+    r.kind === 'expense' && num(r.amount_expected) !== null &&
+    (!r.account_id || r.account_type !== 'credit_card'));
+  const recurTotal = recur.reduce((s,r)=>s+Number(r.amount_expected),0);
+
+  if(!inMonth.length && !nextCycle.length && !recur.length)
+    return {amount_expected:null, amount_low:null, amount_high:null,
+            method:'insufficient_data', confidence:'none', basis_txn_count:0,
+            cards, inMonth, nextCycle:[], recurring:recur};
+
+  // A not-yet-started cycle is genuinely uncertain: floor it at zero rather
+  // than at cycle-to-date, and widen the top instead of pretending to a cap.
+  const low  = inMonth.reduce((s,c)=>s+c.proj.low ,0) + recurTotal;
+  const high = inMonth.reduce((s,c)=>s+c.proj.high,0)
+             + nextCycle.reduce((s,c)=>s+Math.max(c.proj.high, c.proj.projected*1.35),0)
+             + recurTotal;
+  const anyLow = inMonth.some(c => c.proj.confidence === 'low');
+  const cardCount = inMonth.length + nextCycle.length;
+  return {
+    amount_expected: R2(cardTotal + recurTotal),
+    amount_low: R2(low), amount_high: R2(high),
+    method: cardCount ? 'run_rate' : 'recurring_sum',
+    // Never claim high confidence while any card's amount is a projection of a
+    // cycle that has not been spent yet.
+    confidence: cardCount ? ((anyLow || nextCycle.length) ? 'low' : 'high') : 'high',
+    basis_txn_count: cardCount,
+    estimated_cards: nextCycle.length,
+    cards, inMonth, nextCycle, recurring: recur
+  };
+}
+
+/* ---- 3.3 discretionary ----
+   The partition that keeps bills and discretionary from overlapping: §3.2 owns
+   credit-card spend, this owns everything else (bank, wallet, upi, cash and
+   account_id IS NULL). Built from raw monthly sums, never from
+   category_trailing_avg, which would silently drop uncategorised rows. */
+function forecastDiscretionary(opts){
+  const monthly = opts.monthly || [];                // [{month, total}] × 3, complete months
+  const vals = monthly.map(m => Number(m.total)||0);
+  const nz = vals.filter(v => v > 0);
+  const k = nz.length;
+  const base = {months:monthly, k, basis_txn_count: opts.txnCount||0,
+                amount_expected:null, amount_low:null, amount_high:null,
+                method:'insufficient_data', confidence:'none'};
+  if(k === 0) return base;
+  const lo = Math.min.apply(null,nz), hi = Math.max.apply(null,nz);
+  if(k === 3) return Object.assign(base,{amount_expected:R2(median(nz)), amount_low:R2(lo),
+    amount_high:R2(hi), method:'trailing_median', confidence:'high'});
+  if(k === 2) return Object.assign(base,{amount_expected:R2(mean(nz)), amount_low:R2(lo),
+    amount_high:R2(hi), method:'trailing_average', confidence:'low'});
+  return Object.assign(base,{amount_expected:R2(nz[0]), amount_low:R2(nz[0]*0.7),
+    amount_high:R2(nz[0]*1.3), method:'trailing_average', confidence:'low'});
+}
+
+/* ---- 3.4 net ----
+   No income forecast means no net row at all: a net figure without income is
+   meaningless and renders as a large negative number that panics the user. */
+function forecastNet(income, bills, disc){
+  if(!income || income.amount_expected === null) return null;
+  const be = bills && bills.amount_expected !== null ? bills : null;
+  const de = disc  && disc.amount_expected  !== null ? disc  : null;
+  return {
+    amount_expected: R2(income.amount_expected - (be?be.amount_expected:0) - (de?de.amount_expected:0)),
+    amount_low:  R2((income.amount_low ?? income.amount_expected) - (be?be.amount_high:0) - (de?de.amount_high:0)),
+    amount_high: R2((income.amount_high ?? income.amount_expected) - (be?be.amount_low :0) - (de?de.amount_low :0)),
+    method:'trailing_median', basis_txn_count:null,
+    confidence: (income.confidence==='low'||(be&&be.confidence==='low')||(de&&de.confidence==='low')) ? 'low' : 'high',
+    missing_bills: !be, missing_discretionary: !de
+  };
+}
+
+/* ---- 3.5 essential-expense buckets ----
+   Unmapped or user-renamed categories default to 'want', never 'need'. An
+   unknown category classed as 'need' inflates the emergency-fund target and
+   fires low_emergency_fund at a user who is actually fine. Failing to 'want'
+   fails safe. An active budget plan overrides this map entirely. */
+const DEFAULT_BUCKETS = {
+  'home & bills':'need', 'food':'need', 'transport':'need', 'financial':'need',
+  'personal':'want', 'relationship':'want', 'alcohol & nightlife':'want',
+  'travel':'want', 'subscriptions':'want', 'lent out':'want'
+};
+const BUCKET_OVERRIDES = {
+  'food > dining out':'want', 'food > delivery':'want', 'food > coffee & snacks':'want',
+  'personal > health & pharmacy':'need', 'subscriptions > phone recharge':'need',
+  'home & bills > household supplies':'need', 'transport > vehicle maintenance':'want',
+  'financial > investments':'save', 'financial > card fees & interest':'need',
+  'travel > local':'need'
+};
+/** top/sub are category names; planBucket is the active plan's bucket if any. */
+function resolveBucket(top, sub, planBucket){
+  if(planBucket) return planBucket;
+  const t = String(top||'').trim().toLowerCase();
+  const s = String(sub||'').trim().toLowerCase();
+  if(s && BUCKET_OVERRIDES[t+' > '+s]) return BUCKET_OVERRIDES[t+' > '+s];
+  if(DEFAULT_BUCKETS[t]) return DEFAULT_BUCKETS[t];
+  return 'want';
+}
+function isMappedCategory(top, sub){
+  const t = String(top||'').trim().toLowerCase();
+  const s = String(sub||'').trim().toLowerCase();
+  return !!(DEFAULT_BUCKETS[t] || (s && BUCKET_OVERRIDES[t+' > '+s]));
+}
+
+/* ---- 3.5 emergency fund ---- */
+function computeEssential(monthlyEssential){
+  const vals = (monthlyEssential||[]).map(m => Number(m.total)||0);
+  const nz = vals.filter(v => v > 0);
+  if(nz.length === 0) return {monthly_essential:null, confidence:'none', months_with_data:0};
+  if(nz.length === 3) return {monthly_essential:R2(median(nz)), confidence:'high', months_with_data:3};
+  return {monthly_essential:R2(mean(nz)), confidence:'low', months_with_data:nz.length};
+}
+function emergencyFund(safetyNet, monthlyEssential){
+  if(!safetyNet) return null;
+  const e = computeEssential(monthlyEssential);
+  const bal = Number(safetyNet.current_balance)||0;
+  const tgtMonths = Number(safetyNet.months_target)||0;
+  if(e.monthly_essential === null || e.monthly_essential === 0)
+    return {monthly_essential:null, confidence:e.confidence, months_with_data:e.months_with_data,
+            balance:bal, months_target:tgtMonths, target_amount:null, months_covered:null, progress_pct:null};
+  const target = R2(tgtMonths * e.monthly_essential);
+  const covered = bal / e.monthly_essential;
+  return {
+    monthly_essential:e.monthly_essential, confidence:e.confidence, months_with_data:e.months_with_data,
+    balance:bal, months_target:tgtMonths, target_amount:target,
+    months_covered:covered, progress_pct: target ? Math.min(100, bal/target*100) : null
+  };
+}
+function suggestMonthsTarget(incomeProfile, variabilityPct){
+  const irregular = incomeProfile && incomeProfile.pay_frequency === 'irregular';
+  const v = variabilityPct === null || variabilityPct === undefined ? null : Number(variabilityPct);
+  return (irregular || (v !== null && v > 15)) ? 6 : 4;
+}
+
+/* ---- 3.6 confidence vocabulary ---- */
+function confidenceOf(f){
+  if(!f || f.amount_expected === null) return 'none';
+  return f.confidence || 'high';
+}
+
+/* ---- 4.0 G1: the thin-data gate ----
+   A brand-new user must not be told they are overspending on a two-transaction
+   ledger. Below 20 confirmed non-transfer transactions, or less than one
+   COMPLETE month of history, only the rule-10 setup nudges may fire. */
+function thinDataGate(ctx){
+  const n = Number(ctx.txnCount)||0;
+  if(n < 20) return {pass:false, reason:'few_transactions', txnCount:n};
+  if(!ctx.firstTxnDate) return {pass:false, reason:'no_history', txnCount:n};
+  const first = parseYmd(ctx.firstTxnDate);
+  const today = ctx.today ? parseYmd(ctx.today) : new Date();
+  // one COMPLETE calendar month means the first transaction predates the start
+  // of the current month.
+  if(first >= monthStart(today)) return {pass:false, reason:'under_one_month', txnCount:n};
+  return {pass:true, reason:null, txnCount:n};
+}
+
+/* ---- 4.1 the rules ---- */
+function buildRecommendations(ctx){
+  const out = [];
+  const today = ctx.today ? parseYmd(ctx.today) : new Date();
+  const mk = monthKey(ymd(today));
+  const D = today.getDate(), DIM = daysInMonth(today), frac = D / DIM;
+  const forMonth = ymd(addMonths(monthStart(today), 1)).slice(0,10);
+  const add = r => out.push(r);
+
+  /* --- rule 10: setup nudges. The only rules that survive the thin-data
+        gate, and the only place the engine ever writes `status`. --- */
+  if(!ctx.incomeProfile) add({kind:'general', dedup_key:'setup:income', severity:'info',
+    title:'Tell Khaata what you earn',
+    detail:'Set your income once and next month’s forecast, your net position and the shortfall warning all start working.'});
+  if(!ctx.safetyNet) add({kind:'general', dedup_key:'setup:ef', severity:'info',
+    title:'Set an emergency-fund target',
+    detail:'A target and a balance is all it takes to see how many months of essentials you are covered for.'});
+  if(!ctx.plan) add({kind:'general', dedup_key:'setup:budget', severity:'info',
+    title:'Generate a starter budget',
+    detail:'A 50/30/20 starting point you can edit — it also tells the advisor which of your categories are essentials.'});
+
+  const gate = thinDataGate(ctx);
+  if(!gate.pass) return {recs: out, gate, resolve: resolvedKeys(ctx)};
+
+  /* --- rule 1: overspend_category --- */
+  // Pace maths is unstable in the first days of a month: on the 2nd, one ₹1,500
+  // grocery run is 2.25x "pace" against a ₹10,000 budget and technically running
+  // hot. Firing then trains the user to ignore the alert. But a blunt week of
+  // silence would also miss someone who genuinely burns 60% of a budget by the
+  // 3rd. So: a short day floor, AND the spend must be a material share of the
+  // target — which is what separates "early and trivial" from "early and real".
+  const MIN_DAY_FOR_PACE = 4;
+  const MIN_SHARE_OF_TARGET = 0.25;
+  const openRule1 = [];
+  (ctx.trailing||[]).forEach(t => {
+    if((Number(t.months_seen)||0) < 2) return;
+    const cat = ctx.categoryById ? ctx.categoryById[t.category_id] : null;
+    if(!cat) return;
+    const item = ctx.planItemByCategory ? ctx.planItemByCategory[t.category_id] : null;
+    const target = item ? Number(item.target_amount) : Number(t.avg_monthly_fixed);
+    if(!(target > 0)) return;
+    const mtd = Number((ctx.mtdByCategory||{})[t.category_id]) || 0;
+    const pace = target * frac;
+    const overage = mtd - pace;
+    // The pace inference needs enough month behind it to mean anything. Being
+    // over budget outright does not — that is a fact on any day of the month.
+    const aheadOfPace = D >= MIN_DAY_FOR_PACE
+                     && mtd >= target * MIN_SHARE_OF_TARGET
+                     && mtd > 1.25 * pace && overage >= 500;
+    // Pace alone leaves a hole at the end of the month: on the 28th, ₹9,900 of a
+    // ₹10,000 budget is *under* 1.25x pace, so a steady overspender who sits just
+    // inside the line all month is never warned at all. Spending the whole budget
+    // is worth saying out loud regardless of pace.
+    const overBudget = mtd > target;
+    if(!aheadOfPace && !overBudget) return;
+    openRule1.push(t.category_id);
+    add({kind:'overspend_category', dedup_key:'overspend:'+t.category_id+':'+mk,
+      severity: mtd > 1.5 * target ? 'critical' : 'warning',
+      related_category_id: t.category_id, for_month: ymd(monthStart(today)),
+      title: overBudget ? cat.label+' is over budget this month'
+                        : cat.label+' is running hot this month',
+      detail: overBudget
+        ? money(mtd)+' spent against a '+money(target)+' budget, with '+
+          (function(n){ return n===1 ? '1 day still to go.' : n+' days still to go.'; })(Math.max(0, daysInMonth(today) - D))
+        : money(mtd)+' so far vs about '+money(pace)+' by day '+D+'. That’s '+money(overage)+' ahead of pace.'});
+  });
+
+  /* --- rule 2: bill_due_soon --- */
+  (ctx.cards||[]).forEach(c => {
+    if(!c.next_due_date) return;
+    const days = dayDiff(c.next_due_date, ymd(today));
+    if(days < 0 || days > 7) return;
+    const p = projectCard(c);
+    if(!(p.projected > 0)) return;
+    add({kind:'bill_due_soon', dedup_key:'bill:'+c.account_id+':'+c.next_due_date,
+      severity: days <= 3 ? 'warning' : 'info',
+      related_account_id: c.account_id,
+      title: (c.account_name||'Card')+' bill due in '+days+' day'+(days===1?'':'s'),
+      detail: 'About '+money(p.projected)+(c.is_partial?', so far this cycle':'')+'. Due '+dateShort(c.next_due_date)+'.'});
+  });
+
+  /* --- rule 3: low_emergency_fund --- */
+  const ef = ctx.ef;
+  if(ctx.safetyNet && ef && ef.monthly_essential !== null && ef.months_with_data >= 3
+     && ef.months_covered !== null && ef.months_covered < ef.months_target){
+    const order = ['info','warning','critical'];
+    let sev = ef.months_covered < 1 ? 'critical' : (ef.months_covered < 3 ? 'warning' : 'info');
+    const staleDays = ctx.safetyNet.balance_as_of ? dayDiff(ymd(today), ctx.safetyNet.balance_as_of) : 0;
+    if(staleDays > 45) sev = order[Math.max(0, order.indexOf(sev)-1)];
+    add({kind:'low_emergency_fund', dedup_key:'ef:'+mk, severity:sev,
+      title:'Emergency fund covers '+ef.months_covered.toFixed(1)+' months',
+      detail: money(ef.balance)+' against about '+money(ef.monthly_essential)+
+        ' of essentials a month. Your target is '+ef.months_target+' months ('+money(ef.target_amount)+').'});
+  }
+
+  /* --- rule 4: income_shortfall_risk. Strong income case only. --- */
+  const inc = ctx.income, net = ctx.net;
+  if(inc && inc.method === 'trailing_median' && inc.n >= 3 && net &&
+     (net.amount_expected < 0 || net.amount_low < 0)){
+    const outgo = (ctx.bills && ctx.bills.amount_expected || 0) + (ctx.disc && ctx.disc.amount_expected || 0);
+    add({kind:'income_shortfall_risk', dedup_key:'shortfall:'+forMonth,
+      severity: net.amount_expected < 0 ? 'critical' : 'warning', for_month: forMonth,
+      title:'Next month could come up short',
+      detail:'Expected '+money(inc.amount_expected)+' in, about '+money(outgo)+
+        ' out. On your leanest recent month that’s '+money(net.amount_low)+'.'});
+  }
+
+  /* --- rule 5: recurring_price_change --- */
+  (ctx.recurringAll||[]).forEach(r => {
+    if(!r.is_active) return;
+    const expected = num(r.amount_expected);
+    if(expected === null || expected <= 0) return;
+    // Telling someone a subscription price changed when it did not is worse than
+    // staying quiet, so this rule is deliberately biased to precision.
+    //
+    // Category alone attributed ANY debit in the category to the subscription
+    // ("LinkedIn changed from ₹499 to ₹8,000"). Substring matching was no better
+    // in the other direction: "Amazon" is a substring of "Amazon Prime", so an
+    // ordinary ₹4,200 Amazon order became a Prime price rise — and the same trap
+    // catches "Swiggy One" and "Zomato Gold", which is how subscriptions are
+    // commonly named here.
+    //
+    // So: EVERY token of the subscription name must appear in the merchant
+    // string. "Amazon Prime" no longer matches bare "Amazon"; "LinkedIn" still
+    // matches "LinkedIn Premium". Plus a plausibility band on every path — a
+    // genuine price change is a nudge, not a multiple.
+    const norm  = s => String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+    const toks  = s => norm(s).split(' ').filter(w => w.length >= 3);
+    const rToks = toks(r.name);
+    const PLAUSIBLE_LO = 0.4, PLAUSIBLE_HI = 2.5;
+    const plausible = a => a >= expected * PLAUSIBLE_LO && a <= expected * PLAUSIBLE_HI;
+    const nameMatches = t => {
+      const m = norm(t.merchant_clean).replace(/ /g,'');
+      if(!m || !rToks.length) return false;
+      return rToks.every(w => m.includes(w));
+    };
+    const match = (ctx.txns||[]).filter(t => {
+      if(t.direction !== 'debit') return false;
+      if(dayDiff(ymd(today), t.txn_date) > 45 || dayDiff(ymd(today), t.txn_date) < 0) return false;
+      if(!plausible(Number(t.amount))) return false;
+      if(nameMatches(t))
+        return !r.account_id || !t.account_id || t.account_id === r.account_id;
+      // No usable merchant name on the row: fall back to category.
+      if(!String(t.merchant_clean||'').trim() && r.category_id && t.category_id === r.category_id){
+        return true;
+      }
+      return false;
+    }).sort((a,b)=> a.txn_date < b.txn_date ? 1 : -1)[0];
+    if(!match) return;
+    const actual = Number(match.amount);
+    const delta = Math.abs(actual - expected) / expected * 100;
+    const tol = Number(r.tolerance_pct);
+    if(!(delta > tol)) return;
+    const up = actual > expected;
+    add({kind:'recurring_price_change', dedup_key:'recchg:'+r.id+':'+match.id,
+      severity: up ? 'warning' : 'info', related_category_id: r.category_id || null,
+      title: r.name+' changed from '+money(expected)+' to '+money(actual),
+      detail: 'Charged '+dateShort(match.txn_date)+'. That’s '+(up?'+':'-')+Math.round(delta)+
+        '%, past your '+tol+'% tolerance.'});
+  });
+
+  /* --- rule 6: budget_on_track --- */
+  if(ctx.plan && frac >= 0.6 && !openRule1.length){
+    const totalTarget = (ctx.planItems||[]).reduce((s,i)=>s+(Number(i.target_amount)||0),0);
+    const mtd = Number(ctx.mtdTotal)||0;
+    if(totalTarget > 0 && mtd <= 0.9 * totalTarget * frac){
+      add({kind:'budget_on_track', dedup_key:'ontrack:'+mk, severity:'info',
+        for_month: ymd(monthStart(today)),
+        title:'You’re tracking under budget',
+        detail: money(mtd)+' spent, about '+money(totalTarget*frac)+' expected by now. '+
+          money(totalTarget*frac - mtd)+' to spare.'});
+    }
+  }
+
+  /* --- rule 7: high_utilization. Never fires on a NULL credit_limit —
+        most real cards here have none recorded and guessing is worse
+        than silence. --- */
+  (ctx.cards||[]).forEach(c => {
+    const lim = num(c.credit_limit);
+    if(lim === null || lim <= 0) return;
+    const u = (Number(c.cycle_to_date)||0) / lim;
+    if(u < 0.30) return;
+    add({kind:'high_utilization', dedup_key:'util:'+c.account_id+':'+mk,
+      severity: u >= 0.60 ? 'critical' : 'warning', related_account_id: c.account_id,
+      title: (c.account_name||'Card')+' is at '+Math.round(u*100)+'% of its limit',
+      detail: money(Number(c.cycle_to_date)||0)+' of '+money(lim)+
+        ' this cycle. Under 30% is the usual advice.'});
+  });
+
+  /* --- rule 8: subscription_review. One combined rec, quarterly key, so it
+        cannot nag monthly. --- */
+  const PER_YEAR = {weekly:52, monthly:12, quarterly:4, annual:1, custom:12};
+  const subs = (ctx.recurringAll||[]).filter(r =>
+    r.is_active && r.kind === 'expense' && num(r.amount_expected) !== null);
+  if(subs.length >= 3){
+    const withAnnual = subs.map(r => ({name:r.name,
+      annual: Number(r.amount_expected) * (PER_YEAR[r.frequency] || 12)}));
+    const annual = withAnnual.reduce((s,r)=>s+r.annual,0);
+    const incomeAnnual = inc && inc.amount_expected !== null ? inc.amount_expected * 12 : null;
+    const passPct = incomeAnnual === null ? true : annual >= 0.05 * incomeAnnual;
+    if(annual >= 2000 && passPct){
+      const top3 = withAnnual.slice().sort((a,b)=>b.annual-a.annual).slice(0,3);
+      const q = Math.floor(today.getMonth()/3) + 1;
+      add({kind:'subscription_review', dedup_key:'subs:'+today.getFullYear()+'-Q'+q, severity:'info',
+        title: subs.length+' subscriptions, about '+money(annual)+' a year',
+        detail:'Biggest three: '+top3.map(r=>r.name+' '+money(r.annual)).join(', ')+'. Worth a look.'});
+    }
+  }
+
+  /* --- rule 9: savings_opportunity --- */
+  if(net && net.amount_expected >= 1000 && ctx.safetyNet && ef &&
+     ef.months_covered !== null && ef.months_covered < ef.months_target){
+    const spare = Math.floor(net.amount_expected / 500) * 500;
+    const after = ef.monthly_essential ? (ef.balance + spare) / ef.monthly_essential : null;
+    add({kind:'savings_opportunity', dedup_key:'save:'+forMonth, severity:'info', for_month: forMonth,
+      title:'About '+money(spare)+' spare next month',
+      detail: after === null ? 'Moving it to your emergency fund would push your cover up.'
+        : 'Moving it to your emergency fund takes you from '+ef.months_covered.toFixed(1)+
+          ' to '+after.toFixed(1)+' months of cover.'});
+  }
+
+  return {recs: out, gate, resolve: resolvedKeys(ctx)};
+}
+/** Rule 10 auto-resolution: the one place the engine writes `status`. */
+function resolvedKeys(ctx){
+  const keys = [];
+  if(ctx.incomeProfile) keys.push('setup:income');
+  if(ctx.safetyNet)     keys.push('setup:ef');
+  if(ctx.plan)          keys.push('setup:budget');
+  return keys;
+}
+
+const SEV_ORDER = {critical:0, warning:1, info:2};
+function sortRecs(list){
+  return list.slice().sort((a,b) =>
+    (SEV_ORDER[a.severity]??3) - (SEV_ORDER[b.severity]??3) ||
+    String(b.created_at||'').localeCompare(String(a.created_at||'')));
+}
+
+window.__khAdvisor = {
+  median, mean, stddevSamp, ymd, parseYmd, monthStart, addMonths, daysInMonth, dayDiff,
+  completeMonths, forecastIncome, projectCard, computeBillsTotal, forecastDiscretionary,
+  forecastNet, resolveBucket, isMappedCategory, DEFAULT_BUCKETS, BUCKET_OVERRIDES,
+  computeEssential, emergencyFund, suggestMonthsTarget, confidenceOf, thinDataGate,
+  buildRecommendations, sortRecs, money, compact, esc, RENDER_CAP: 12
+};
+
+/* ============================================================================
+   DATA
+   ========================================================================= */
+
+const TODAY = () => ymd(new Date());
+
+function catLabel(c, byId){
+  if(!c) return '';
+  const p = c.parent_id ? byId[c.parent_id] : null;
+  return p ? p.name + ' › ' + c.name : c.name;
+}
+function catTopSub(c, byId){
+  if(!c) return {top:'', sub:null};
+  const p = c.parent_id ? byId[c.parent_id] : null;
+  return p ? {top:p.name, sub:c.name} : {top:c.name, sub:null};
+}
+
+async function loadAll(){
+  const today = TODAY();
+  const t = parseYmd(today);
+  const winStart = ymd(addMonths(monthStart(t), -3));       // 3 complete months + current
+  const uid = ME;
+
+  const q = {
+    incomeProfile: sb.from('income_profile').select('*').eq('user_id',uid).maybeSingle(),
+    safetyNet:     sb.from('safety_net').select('*').eq('user_id',uid).maybeSingle(),
+    plan:          sb.from('budget_plans').select('*').eq('user_id',uid).eq('is_active',true).maybeSingle(),
+    planItems:     sb.from('budget_plan_items').select('*').eq('user_id',uid),
+    cards:         sb.from('upcoming_bills_forecast').select('*'),
+    recurringDue:  sb.from('upcoming_recurring_forecast').select('*'),
+    recurring:     sb.from('recurring').select('id,name,kind,amount_expected,frequency,account_id,category_id,next_due_date,tolerance_pct,is_active').eq('user_id',uid).eq('is_active',true),
+    trailing:      sb.from('category_trailing_avg').select('*'),
+    salary:        sb.from('salary_credit_history').select('*'),
+    recs:          sb.from('recommendations').select('*').eq('user_id',uid),
+    accounts:      sb.from('accounts').select('id,name,type,issuer,last4,statement_day,due_day,credit_limit,is_active').eq('user_id',uid),
+    categories:    sb.from('categories').select('id,parent_id,kind,name,is_active').eq('user_id',uid),
+    forecasts:     sb.from('forecasts').select('*').eq('user_id',uid).order('computed_at',{ascending:false}).limit(8),
+    txns:          sb.from('transactions')
+                     .select('id,txn_date,amount,direction,account_id,category_id,merchant_clean')
+                     .eq('user_id',uid).eq('is_transfer',false).eq('status','confirmed')
+                     .gte('txn_date',winStart).order('txn_date',{ascending:false}).limit(5000),
+    countAll:      sb.from('transactions').select('id',{count:'exact',head:true})
+                     .eq('user_id',uid).eq('is_transfer',false).eq('status','confirmed'),
+    firstTxn:      sb.from('transactions').select('txn_date')
+                     .eq('user_id',uid).eq('is_transfer',false).eq('status','confirmed')
+                     .order('txn_date',{ascending:true}).limit(1)
+  };
+  const keys = Object.keys(q);
+  const res  = await Promise.all(keys.map(k => q[k].then(r => r, e => ({error:e}))));
+  const outErrors = {};
+  keys.forEach((k,i) => {
+    const r = res[i] || {};
+    if(r.error){ outErrors[k] = r.error.message || String(r.error); return; }
+    if(k === 'countAll'){ S.txnCount = r.count || 0; return; }
+    if(k === 'firstTxn'){ S.firstTxnDate = (r.data && r.data[0]) ? r.data[0].txn_date : null; return; }
+    if(k === 'incomeProfile' || k === 'safetyNet' || k === 'plan'){ S[k] = r.data || null; return; }
+    S[k] = r.data || [];
+  });
+  return outErrors;
+}
+
+/* Build every derived number the page renders. Pure inputs → pure outputs. */
+function computeAll(){
+  const today = TODAY();
+  const t = parseYmd(today);
+  const catById = {}; S.categories.forEach(c => catById[c.id] = c);
+  const acctById = {}; S.accounts.forEach(a => acctById[a.id] = a);
+  const planItemByCategory = {};
+  if(S.plan) S.planItems.filter(i => i.plan_id === S.plan.id).forEach(i => planItemByCategory[i.category_id] = i);
+  const planItems = S.plan ? S.planItems.filter(i => i.plan_id === S.plan.id) : [];
+
+  const win3 = completeMonths(t, 3);
+  const curMonth = monthKey(today);
+
+  // monthly non-credit-card debit totals (discretionary basis)
+  const discByMonth = {}; win3.forEach(m => discByMonth[m] = 0);
+  // monthly essential-bucket debit totals (all accounts, cards included)
+  const essByMonth = {};  win3.forEach(m => essByMonth[m] = 0);
+  // month-to-date spend, per category and total
+  const mtdByCategory = {}; let mtdTotal = 0;
+  let discTxnCount = 0;
+  const unclassified = new Set();
+
+  S.txns.forEach(x => {
+    if(x.direction !== 'debit') return;
+    const mk = monthKey(x.txn_date);
+    const amt = Number(x.amount)||0;
+    const acct = x.account_id ? acctById[x.account_id] : null;
+    const isCard = !!(acct && acct.type === 'credit_card');
+    if(win3.indexOf(mk) >= 0){
+      if(!isCard){ discByMonth[mk] += amt; discTxnCount++; }
+      const cat = x.category_id ? catById[x.category_id] : null;
+      if(cat && cat.kind === 'expense'){
+        const ts = catTopSub(cat, catById);
+        const pb = planItemByCategory[cat.id] ? planItemByCategory[cat.id].bucket : null;
+        if(resolveBucket(ts.top, ts.sub, pb) === 'need') essByMonth[mk] += amt;
+        if(!pb && !isMappedCategory(ts.top, ts.sub)) unclassified.add(cat.id);
+      }
+    }
+    if(mk === curMonth){
+      mtdTotal += amt;
+      if(x.category_id) mtdByCategory[x.category_id] = (mtdByCategory[x.category_id]||0) + amt;
+    }
+  });
+
+  const income = forecastIncome({today, salaryRows:S.salary, incomeProfile:S.incomeProfile});
+  const forMonth = ymd(addMonths(monthStart(t), 1)).slice(0,7);
+  const bills = computeBillsTotal({forMonth, cards:S.cards, recurring:S.recurringDue});
+  const disc  = forecastDiscretionary({monthly: win3.map(m => ({month:m, total:discByMonth[m]})),
+                                       txnCount: discTxnCount});
+  const net   = forecastNet(income, bills, disc);
+  const ef    = emergencyFund(S.safetyNet, win3.map(m => ({month:m, total:essByMonth[m]})));
+
+  const categoryById = {};
+  S.categories.forEach(c => categoryById[c.id] = {id:c.id, label:catLabel(c, catById), kind:c.kind});
+
+  const built = buildRecommendations({
+    today, txnCount:S.txnCount, firstTxnDate:S.firstTxnDate,
+    incomeProfile:S.incomeProfile, safetyNet:S.safetyNet, plan:S.plan, planItems,
+    planItemByCategory, categoryById, trailing:S.trailing, mtdByCategory, mtdTotal,
+    cards:S.cards, recurringAll:S.recurring, txns:S.txns,
+    income, bills, disc, net, ef
+  });
+
+  return {today, forMonth, income, bills, disc, net, ef, built,
+          catById, acctById, planItems, planItemByCategory, win3,
+          discByMonth, essByMonth, mtdByCategory, mtdTotal,
+          unclassifiedCount: unclassified.size};
+}
+
+/* ============================================================================
+   PERSISTENCE — render first, write after. A failed write never blocks the UI.
+   ========================================================================= */
+
+const SIX_HOURS = 6*60*60*1000;
+const LAST_PERSIST = 'kh.adv.lastPersist';
+function needsPersist(force){
+  if(force) return true;
+  const stamps = (S.forecasts||[]).map(f => new Date(f.computed_at).getTime())
+                                  .filter(n => !Number.isNaN(n));
+  // A user with nothing to forecast writes no forecasts row, so there is no
+  // server-side timestamp to throttle against. Fall back to a local stamp so
+  // opening the page ten times still does not produce ten write bursts.
+  try{
+    const local = Number(localStorage.getItem(LAST_PERSIST));
+    if(local) stamps.push(local);
+  }catch(_){}
+  if(!stamps.length) return true;
+  return (Date.now() - Math.max.apply(null, stamps)) > SIX_HOURS;
+}
+function saveChip(msg){
+  const old = document.getElementById('savechip'); if(old) old.remove();
+  if(!msg) return;
+  const d = document.createElement('div');
+  d.id='savechip'; d.className='savechip'; d.setAttribute('role','status');
+  d.textContent = msg; document.body.appendChild(d);
+  setTimeout(()=>{ if(d.parentNode) d.remove(); }, 6000);
+}
+async function persist(force){
+  if(!needsPersist(force)) return;
+  const forMonth = F.forMonth + '-01';
+  const now = new Date().toISOString();
+  const rows = [];
+  const push = (kind, f) => {
+    if(!f || f.amount_expected === null) return;   // never write a zero as a prediction
+    rows.push({user_id:ME, for_month:forMonth, kind,
+      amount_expected:f.amount_expected, amount_low:f.amount_low, amount_high:f.amount_high,
+      method:f.method, basis_txn_count:f.basis_txn_count ?? null, computed_at:now});
+  };
+  push('income', F.income); push('bills', F.bills);
+  push('discretionary', F.disc); push('net', F.net);
+
+  try{
+    if(rows.length){
+      const {error} = await sb.from('forecasts')
+        .upsert(rows, {onConflict:'user_id,for_month,kind'});
+      if(error) throw error;
+    }
+    const recRows = F.built.recs.map(r => ({
+      user_id:ME, kind:r.kind, dedup_key:r.dedup_key, severity:r.severity,
+      title:r.title, detail:r.detail||null,
+      related_category_id:r.related_category_id||null,
+      related_account_id:r.related_account_id||null,
+      for_month:r.for_month||null, computed_at:now
+    }));
+    if(recRows.length){
+      // `status` is deliberately absent from the upsert payload's effect: on
+      // conflict Supabase updates only the columns supplied, and status is not
+      // one of them, so a dismissed recommendation stays dismissed forever.
+      const {error} = await sb.from('recommendations')
+        .upsert(recRows, {onConflict:'user_id,dedup_key'});
+      if(error) throw error;
+    }
+    if(F.built.resolve.length){
+      await sb.from('recommendations')
+        .update({status:'done', resolved_at:now})
+        .eq('user_id',ME).eq('status','open').in('dedup_key', F.built.resolve);
+    }
+    if(F.income && F.income.variability_pct !== null && S.incomeProfile){
+      await sb.from('income_profile')
+        .update({variability_pct:F.income.variability_pct}).eq('user_id',ME);
+    }
+    S.forecasts = rows;
+    try{ localStorage.setItem(LAST_PERSIST, String(Date.now())); }catch(_){}
+  }catch(e){
+    saveChip('Couldn’t save — showing live numbers');
+  }
+}
+
+/* ============================================================================
+   RENDER
+   ========================================================================= */
+
+function skeleton(lines){
+  let h = '<div class="card" style="padding:10px 0">';
+  for(let i=0;i<(lines||3);i++) h += `<div class="sk w${(i%3)+1}"></div>`;
+  return h + '</div>';
+}
+function sectionError(id, msg, retry){
+  return `<div class="card pad"><div class="err">${esc(msg)}</div>
+    <button class="btn sec sm" data-retry="${esc(retry)}" style="margin-top:11px">Retry</button></div>`;
+}
+function bandLine(f){
+  if(!f || f.amount_low === null) return '';
+  return `<span class="band num">${esc(money(f.amount_low))} – ${esc(money(f.amount_high))}</span>`;
+}
+function earlyChip(f){
+  return confidenceOf(f) === 'low' ? ' <span class="tag warn">early estimate</span>' : '';
+}
+
+function renderForecast(){
+  const el = $('#secForecast');
+  const {income, bills, disc, net, forMonth} = F;
+  if(income.amount_expected === null && bills.amount_expected === null && disc.amount_expected === null){
+    el.innerHTML = `<div class="card"><div class="empty"><span class="big">◔</span>
+      Once there’s a month of history — or you tell Khaata what you earn — next month’s picture shows up here.</div>
+      <div class="pad" style="padding-top:0"><button class="btn" id="setIncome">Set my income</button></div></div>`;
+    $('#setIncome').onclick = openIncomeSheet;
+    return;
+  }
+  const rows = [
+    ['income','Expected income', income, false],
+    ['bills','Card bills', bills, true],
+    ['discretionary','Other spend', disc, true]
+  ];
+  let h = `<div class="hero"><div class="lab">Next month · ${esc(monthLong(forMonth))}</div>`;
+  if(net){
+    h += `<div class="big num">${esc(money(net.amount_expected))}</div>
+      <div class="cap">projected net${net.missing_bills?' · excludes card bills — no card history yet':''}${net.missing_discretionary?' · excludes day-to-day spend':''}</div>`;
+  }else{
+    h += `<div class="big num">—</div><div class="cap">net needs an income figure first</div>`;
+  }
+  h += `</div><div class="card">`;
+  rows.forEach(([k,label,f]) => {
+    h += `<button class="frow" data-fc="${k}">
+      <span><span class="nm">${esc(label)}</span>
+      <span class="sub">${esc(methodWords(k,f))}${earlyChip(f)}</span></span>
+      <span class="rt"><span class="amt num">${f.amount_expected===null?'—':esc(money(f.amount_expected))}</span>
+      ${bandLine(f)}</span></button>`;
+  });
+  if(net){
+    h += `<button class="frow" data-fc="net">
+      <span><span class="nm">Projected net</span><span class="sub">income less bills and day-to-day${earlyChip(net)}</span></span>
+      <span class="rt"><span class="amt num ${net.amount_expected>=0?'pos':'neg'}" style="font-size:19px">${esc(money(net.amount_expected))}</span>
+      ${bandLine(net)}</span></button>`;
+  }
+  h += `</div>`;
+  if(income.variable_months > 0){
+    h += `<p class="note">Plus bonuses or arrears in ${income.variable_months} of the last 6 months, <span class="num">${esc(money(income.variable_low))}</span>–<span class="num">${esc(money(income.variable_high))}</span> when they land. Never counted in the baseline.</p>`;
+  }
+  el.innerHTML = h;
+  $$('#secForecast [data-fc]').forEach(b => b.onclick = () => openForecastSheet(b.dataset.fc));
+}
+function methodWords(kind, f){
+  if(!f || f.amount_expected === null) return 'not enough history yet';
+  switch(f.method){
+    case 'fixed':           return 'the amount you told Khaata';
+    case 'trailing_median': return kind==='income' ? 'median of your last '+f.n+' salary credits'
+                                                   : 'median of your last 3 complete months';
+    case 'trailing_average':return kind==='income' ? 'average of your last '+f.n+' salary credits'
+                                                   : 'average of the months with data';
+    case 'run_rate':        return 'this cycle’s spend, extended to the full cycle';
+    case 'recurring_sum':   return 'closed statement plus recurring items';
+    default:                return 'estimated';
+  }
+}
+function openForecastSheet(kind){
+  const f = kind==='income'?F.income : kind==='bills'?F.bills : kind==='discretionary'?F.disc : F.net;
+  if(!f) return;
+  const title = {income:'Expected income', bills:'Card bills', discretionary:'Other spend', net:'Projected net'}[kind];
+  let body = `<div style="font-weight:800;font-size:19px;letter-spacing:-.02em;margin-bottom:2px">${esc(title)}</div>
+    <div style="color:var(--faint);font-size:13px;margin-bottom:14px">${esc(methodWords(kind,f))}</div>
+    <div class="grid2">
+      <div class="card stat"><span class="k">Expected</span><span class="v num">${f.amount_expected===null?'—':esc(money(f.amount_expected))}</span></div>
+      <div class="card stat"><span class="k">Range</span><span class="v num" style="font-size:17px">${f.amount_low===null?'—':esc(money(f.amount_low))} – ${f.amount_high===null?'—':esc(money(f.amount_high))}</span></div>
+    </div>`;
+  if(kind === 'income'){
+    body += `<h2>The months it read</h2><div class="card">` +
+      (F.income.values.length
+        ? F.income.window.map((m,i) => {
+            const row = (S.salary||[]).find(r => monthKey(r.month) === m);
+            const v = row ? Number(row.base_total)||0 : 0;
+            return `<div class="frow"><span class="nm">${esc(monthName(m))}</span>
+              <span class="rt"><span class="amt num">${esc(money(v))}</span></span></div>`;
+          }).join('')
+        : `<div class="empty">No salary credits found in the last 6 complete months.</div>`) +
+      `</div><p class="note">Base pay only. Bonus, arrears and reimbursements are tracked separately and never enter this figure.${F.income.variability_pct!==null?' Measured variability '+F.income.variability_pct+'%.':''}${F.income.pay_day?' Typically lands around day '+F.income.pay_day+'.':''}</p>`;
+  }
+  if(kind === 'bills'){
+    body += `<h2>What is in it</h2><div class="card">` +
+      (F.bills.inMonth||[]).map(c => `<div class="frow"><span><span class="nm">${esc(c.row.account_name||'Card')}</span>
+        <span class="sub">due ${esc(dateShort(c.row.next_due_date))} · ${esc(c.proj.reason.replace(/_/g,' '))}</span></span>
+        <span class="rt"><span class="amt num">${esc(money(c.proj.projected))}</span></span></div>`).join('') +
+      // Cards billing in a cycle that has not started yet. They are in the
+      // total, so they must be in the breakdown — otherwise the hero reads
+      // ₹65,000 and this list adds up to ₹20,000.
+      (F.bills.nextCycle||[]).map(c => `<div class="frow"><span><span class="nm">${esc(c.row.account_name||'Card')}</span>
+        <span class="sub">next cycle${c.row.due_day?', due around day '+esc(String(c.row.due_day)):''} · estimated from current spend</span></span>
+        <span class="rt"><span class="amt num">${esc(money(c.proj.projected))}</span></span></div>`).join('') +
+      (F.bills.recurring||[]).map(r => `<div class="frow"><span><span class="nm">${esc(r.name)}</span>
+        <span class="sub">recurring, not on a card</span></span>
+        <span class="rt"><span class="amt num">${esc(money(Number(r.amount_expected)||0))}</span></span></div>`).join('') +
+      `</div>${(F.bills.estimated_cards||0) ? `<div class="nudge">${F.bills.estimated_cards} of these ${F.bills.estimated_cards===1?'is a card whose':'are cards whose'} next bill covers a cycle that has not been spent yet, so ${F.bills.estimated_cards===1?'it is':'they are'} estimated from current spending. Treat the total as a guide, not a statement.</div>` : ''}` +
+      `<p class="note">Recurring items charged to a credit card are left out here — they are already inside that card’s cycle spend.</p>`;
+  }
+  if(kind === 'discretionary'){
+    body += `<h2>The months it read</h2><div class="card">` +
+      F.win3.map(m => `<div class="frow"><span class="nm">${esc(monthName(m))}</span>
+        <span class="rt"><span class="amt num">${esc(money(F.discByMonth[m]||0))}</span></span></div>`).join('') +
+      `</div><p class="note">Spend on bank, wallet, UPI and cash — everything credit-card bills do not already cover.</p>`;
+  }
+  if(kind === 'net'){
+    body += `<p class="note">Income less card bills less day-to-day spend. The worst case pairs your leanest income month with your heaviest spend estimate; the best case does the reverse.</p>`;
+  }
+  body += `<button class="btn sec" id="shClose" style="margin-top:14px">Close</button>`;
+  $('#sheetBody').innerHTML = body;
+  $('#shClose').onclick = () => toggleSheet(false);
+  toggleSheet(true);
+}
+
+function renderUpcoming(){
+  const el = $('#secUpcoming');
+  const cards = S.cards || [], rec = S.recurringDue || [];
+  if(!cards.length && !rec.length){
+    el.innerHTML = `<div class="card"><div class="empty"><span class="big">◌</span>No cards or recurring items with dates yet.</div></div>`;
+    return;
+  }
+  let h = '';
+  if(cards.length){
+    h += `<div class="card">` + cards.map(c => {
+      const p = projectCard(c);
+      const name = (c.account_name||'Card') + (c.last4 ? ' ·'+c.last4 : '');
+      const due = c.next_due_date ? 'due '+dateShort(c.next_due_date) : 'no due date set';
+      const basis = c.date_basis === 'rolling_30d' ? 'last 30 days — set a statement date for a real forecast' : '';
+      return `<div class="frow"><span><span class="nm">${esc(name)}</span>
+        <span class="sub">${esc(due)}${basis?' · '+esc(basis):''}</span>
+        ${c.is_partial ? `<span class="sub">cycle to date <span class="num">${esc(money(Number(c.cycle_to_date)||0))}</span> · day ${esc(String(c.days_elapsed))} of ${esc(String(c.days_in_cycle))}</span>`:''}</span>
+        <span class="rt"><span class="amt num">${esc(money(p.projected))}</span>
+        ${p.confidence==='low'?'<span class="band">early estimate</span>':''}</span></div>`;
+    }).join('') + `</div>`;
+    if(cards.some(c => !c.statement_day || !c.due_day))
+      h += `<p class="note">Some cards have no statement or due date recorded. Filling those two fields in the ledger makes this forecast materially better.</p>`;
+  }
+  if(rec.length){
+    h += `<h2 style="margin-top:18px">Recurring, next 14 days</h2><div class="card">` + rec.map(r => `
+      <div class="frow"><span><span class="nm">${esc(r.name)}</span>
+        <span class="sub">${r.is_overdue ? 'overdue since '+esc(dateShort(r.next_due_date)) : 'due '+esc(dateShort(r.next_due_date))}${r.account_type==='credit_card'?' · on a card':''}</span></span>
+        <span class="rt"><span class="amt num">${r.amount_expected===null?'—':esc(money(Number(r.amount_expected)))}</span>
+        ${r.is_overdue?'<span class="band" style="color:var(--expense)">overdue</span>':''}</span></div>`).join('') + `</div>`;
+  }
+  el.innerHTML = h;
+}
+
+function renderEf(){
+  const el = $('#secEf');
+  if(!S.safetyNet){
+    el.innerHTML = `<div class="card"><div class="empty"><span class="big">◇</span>
+      Set a target and Khaata will tell you how many months you’re covered for.</div>
+      <div class="pad" style="padding-top:0"><button class="btn" id="efSet">Set a target</button></div></div>`;
+    $('#efSet').onclick = openEfSheet;
+    return;
+  }
+  const ef = F.ef;
+  const stale = S.safetyNet.balance_as_of ? dayDiff(F.today, S.safetyNet.balance_as_of) : 0;
+  let h = `<div class="card pad">`;
+  if(ef.monthly_essential === null){
+    h += `<div class="stat" style="padding:0"><span class="k">Balance</span>
+      <span class="v num">${esc(money(ef.balance))}</span></div>
+      <p class="note">Once there are a few complete months of essential spend, this turns into months of cover.</p>`;
+  }else{
+    const p = Math.max(0, Math.min(100, ef.progress_pct||0));
+    h += `<div class="row sp" style="align-items:flex-end">
+        <div><div style="font-size:11px;color:var(--faint);font-weight:700;letter-spacing:.05em;text-transform:uppercase">Months covered</div>
+        <div class="num" style="font-size:32px;font-weight:800;letter-spacing:-.03em">${esc(ef.months_covered.toFixed(1))}</div></div>
+        <div style="text-align:right"><div class="num" style="font-weight:800">${esc(money(ef.balance))}</div>
+        <div class="num" style="font-size:12px;color:var(--faint);font-weight:600">of ${esc(money(ef.target_amount))}</div></div>
+      </div>
+      <div class="prog"><i style="width:${p.toFixed(1)}%"></i></div>
+      <div class="row sp" style="font-size:12.5px;color:var(--faint);font-weight:600">
+        <span>${esc(pct(ef.balance, ef.target_amount))} of a ${esc(String(ef.months_target))}-month target</span>
+        <span class="num">${esc(money(ef.monthly_essential))}/mo essentials</span>
+      </div>`;
+    if(ef.confidence === 'low') h += `<p class="note">Based on ${ef.months_with_data} month${ef.months_with_data===1?'':'s'} of data — treat it as a rough figure.</p>`;
+  }
+  if(stale > 45) h += `<div class="nudge" role="status">Balance last updated ${stale} days ago — still right?</div>`;
+  h += `<div class="grid2" style="margin-top:13px">
+      <button class="btn sec sm" id="efEdit" style="width:100%">Edit</button>
+      <button class="btn sec sm" id="efWhat" style="width:100%">What counts as essential?</button>
+    </div></div>`;
+  if(F.unclassifiedCount > 0)
+    h += `<p class="note">${F.unclassifiedCount} categor${F.unclassifiedCount===1?'y isn’t':'ies aren’t'} classified yet — set them in Budget.</p>`;
+  el.innerHTML = h;
+  $('#efEdit').onclick = openEfSheet;
+  $('#efWhat').onclick = openBucketSheet;
+}
+
+function openBucketSheet(){
+  const rowsFor = b => Object.keys(DEFAULT_BUCKETS).filter(k => DEFAULT_BUCKETS[k]===b);
+  const cap = s => s.replace(/\b\w/g, c => c.toUpperCase());
+  $('#sheetBody').innerHTML = `
+    <div style="font-weight:800;font-size:19px;letter-spacing:-.02em;margin-bottom:4px">What counts as essential</div>
+    <div style="color:var(--faint);font-size:13px;margin-bottom:14px">Essentials are the <strong>need</strong> bucket. An active budget plan overrides all of this.</div>
+    <h2 style="margin-top:0">Need</h2><div class="chips">${rowsFor('need').map(k=>`<span class="chip">${esc(cap(k))}</span>`).join('')}</div>
+    <h2>Want</h2><div class="chips">${rowsFor('want').map(k=>`<span class="chip">${esc(cap(k))}</span>`).join('')}</div>
+    <h2>Exceptions</h2><div class="card">${Object.keys(BUCKET_OVERRIDES).map(k=>`
+      <div class="frow"><span class="nm">${esc(cap(k).replace(' > ',' › '))}</span>
+      <span class="rt"><span class="tag">${esc(BUCKET_OVERRIDES[k])}</span></span></div>`).join('')}</div>
+    <p class="note">Anything not listed defaults to <strong>want</strong>. That is deliberate: calling an unknown category essential would inflate your emergency-fund target and warn you for no reason.</p>
+    <button class="btn sec" id="shClose" style="margin-top:14px">Close</button>`;
+  $('#shClose').onclick = () => toggleSheet(false);
+  toggleSheet(true);
+}
+
+function openEfSheet(){
+  const sn = S.safetyNet || {months_target:6, current_balance:0};
+  const sug = suggestMonthsTarget(S.incomeProfile, F && F.income ? F.income.variability_pct : null);
+  const v = F && F.income ? F.income.variability_pct : null;
+  $('#sheetBody').innerHTML = `
+    <div style="font-weight:800;font-size:19px;letter-spacing:-.02em;margin-bottom:14px">Emergency fund</div>
+    <div class="f"><label for="efMonths">Months of essentials to cover</label>
+      <input id="efMonths" type="number" inputmode="decimal" min="0.5" step="0.5" value="${esc(String(sn.months_target))}"></div>
+    <div class="f"><label for="efBal">Balance today</label>
+      <input id="efBal" type="number" inputmode="decimal" min="0" step="1" value="${esc(String(sn.current_balance))}"></div>
+    <button class="btn sec sm" id="efUse" style="margin-bottom:12px">Use suggested ${sug} months</button>
+    <p class="note">${v!==null ? 'Your income moved about '+v+'% month to month, so aim nearer the top of the usual 3–6 month range.' : 'The usual advice is 3–6 months of essential spend, toward the top if your income varies.'}</p>
+    <button class="btn" id="efSave" style="margin-top:8px">Save</button>
+    <div id="efErr"></div>`;
+  $('#efUse').onclick = () => { $('#efMonths').value = String(sug); };
+  $('#efSave').onclick = async () => {
+    const months = Number($('#efMonths').value), bal = Number($('#efBal').value);
+    if(!(months > 0)) return err('#efErr','Months must be more than zero.');
+    if(!(bal >= 0))   return err('#efErr','Balance cannot be negative.');
+    const btn = $('#efSave'); btn.disabled = true; btn.textContent = 'Saving…';
+    const {error} = await sb.from('safety_net').upsert({
+      user_id:ME, months_target:months, current_balance:bal, balance_as_of:F.today
+    }, {onConflict:'user_id'});
+    btn.disabled = false; btn.textContent = 'Save';
+    if(error) return err('#efErr', error.message);
+    toggleSheet(false); await refresh(true);
+  };
+  toggleSheet(true);
+}
+
+function openIncomeSheet(){
+  const p = S.incomeProfile || {pay_frequency:'monthly', auto_estimate:true, expected_amount:'', pay_day:''};
+  $('#sheetBody').innerHTML = `
+    <div style="font-weight:800;font-size:19px;letter-spacing:-.02em;margin-bottom:14px">Your income</div>
+    <div class="f"><label for="ipFreq">How often you are paid</label>
+      <select id="ipFreq">${['monthly','biweekly','weekly','irregular'].map(f =>
+        `<option value="${f}"${p.pay_frequency===f?' selected':''}>${f}</option>`).join('')}</select></div>
+    <div class="f"><label for="ipAuto">Estimate</label>
+      <select id="ipAuto">
+        <option value="1"${p.auto_estimate!==false?' selected':''}>Learn it from my salary credits</option>
+        <option value="0"${p.auto_estimate===false?' selected':''}>Use a fixed amount I set</option>
+      </select></div>
+    <div class="f"><label for="ipAmt">Fixed amount (used only with the option above)</label>
+      <input id="ipAmt" type="number" inputmode="decimal" min="0" step="1" value="${esc(String(p.expected_amount??''))}"></div>
+    <div class="f"><label for="ipDay">Day of the month it usually lands (optional)</label>
+      <input id="ipDay" type="number" inputmode="numeric" min="1" max="31" step="1" value="${esc(String(p.pay_day??''))}"></div>
+    <p class="note">Measured variability${F&&F.income&&F.income.variability_pct!==null?': '+F.income.variability_pct+'%':' is calculated for you once there are three months of history'}. It is read-only.</p>
+    <button class="btn" id="ipSave" style="margin-top:8px">Save</button>
+    <div id="ipErr"></div>`;
+  $('#ipSave').onclick = async () => {
+    const auto = $('#ipAuto').value === '1';
+    const amt = $('#ipAmt').value === '' ? null : Number($('#ipAmt').value);
+    const day = $('#ipDay').value === '' ? null : Number($('#ipDay').value);
+    if(amt !== null && !(amt >= 0)) return err('#ipErr','Amount cannot be negative.');
+    if(day !== null && !(day >= 1 && day <= 31)) return err('#ipErr','Day must be between 1 and 31.');
+    if(!auto && amt === null) return err('#ipErr','A fixed amount needs a number.');
+    const btn = $('#ipSave'); btn.disabled = true; btn.textContent = 'Saving…';
+    const {error} = await sb.from('income_profile').upsert({
+      user_id:ME, pay_frequency:$('#ipFreq').value, auto_estimate:auto,
+      expected_amount:amt, pay_day:day
+    }, {onConflict:'user_id'});
+    btn.disabled = false; btn.textContent = 'Save';
+    if(error) return err('#ipErr', error.message);
+    toggleSheet(false); await refresh(true);
+  };
+  toggleSheet(true);
+}
+
+/* ---- budget ---- */
+const REFERENCE = {need:0.50, want:0.30, save:0.20};
+function renderBudget(){
+  const el = $('#secBudget');
+  if(!S.plan){
+    el.innerHTML = `<div class="card"><div class="empty"><span class="big">◱</span>
+      No active budget yet.</div>
+      <div class="pad" style="padding-top:0">
+        <button class="btn" id="genPlan">Generate a starter budget</button>
+        <p class="note">50/30/20 splits your take-home three ways — 50% needs, 30% wants, 20% saving. Khaata seeds targets from your last three months; tap any category afterwards to change its target or bucket, and you can delete the whole plan at any time.</p>
+      </div></div>`;
+    $('#genPlan').onclick = generateStarterPlan;
+    return;
+  }
+  const items = F.planItems;
+  if(!items.length){
+    el.innerHTML = `<div class="card"><div class="empty"><span class="big">◱</span>
+      “${esc(S.plan.name)}” has no categories yet.</div></div>`;
+    return;
+  }
+  const buckets = {need:{t:0,a:0}, want:{t:0,a:0}, save:{t:0,a:0}};
+  items.forEach(i => {
+    const b = buckets[i.bucket] || buckets.want;
+    b.t += Number(i.target_amount)||0;
+    b.a += Number(F.mtdByCategory[i.category_id])||0;
+  });
+  const grand = buckets.need.t + buckets.want.t + buckets.save.t;
+  let h = `<div class="card bars">` + ['need','want','save'].map(k => {
+    const b = buckets[k], w = b.t ? Math.min(100, b.a/b.t*100) : 0;
+    const markPct = grand ? Math.min(100, (REFERENCE[k]*grand) / (b.t||1) * 100) : 0;
+    return `<div class="bar">
+      <div class="top"><span class="nm">${k}</span>
+        <span class="vl num" title="${esc(money(b.a))} of ${esc(money(b.t))}">₹${esc(compact(b.a))} / ₹${esc(compact(b.t))}</span></div>
+      <div class="track"><div class="fill${b.a>b.t?' over':''}" style="width:${w.toFixed(1)}%"></div>
+        ${b.t? `<div class="mark" style="left:${markPct.toFixed(1)}%" title="50/30/20 reference"></div>`:''}</div>
+      <div class="sub">${esc(pct(b.t, grand))} of the plan · 50/30/20 says ${Math.round(REFERENCE[k]*100)}%</div>
+    </div>`;
+  }).join('') + `</div>`;
+
+  const sorted = items.slice().sort((a,b)=>(Number(b.target_amount)||0)-(Number(a.target_amount)||0));
+  const rowFor = i => {
+    const c = F.catById[i.category_id];
+    const label = c ? catLabel(c, F.catById) : 'Category';
+    const a = Number(F.mtdByCategory[i.category_id])||0, t = Number(i.target_amount)||0;
+    return `<div class="frow bpi" data-cat="${esc(i.category_id)}" role="button" tabindex="0"
+      aria-label="Edit target for ${esc(label)}"><span><span class="nm">${esc(label)}</span>
+      <span class="sub">${esc(i.bucket)} · tap to edit</span></span>
+      <span class="rt"><span class="amt num${a>t?' neg':''}">${esc(money(a))}</span>
+      <span class="band num">of ${esc(money(t))}</span></span></div>`;
+  };
+  h += `<h2 style="margin-top:18px">By category</h2><div class="card">` +
+       sorted.slice(0,8).map(rowFor).join('') +
+       (sorted.length > 8 ? `<div id="moreCats" class="hide">${sorted.slice(8).map(rowFor).join('')}</div>
+         <div class="pad" style="padding:12px 14px"><button class="btn sec sm" id="showMore">Show ${sorted.length-8} more</button></div>` : '') +
+       `</div>
+       <div class="pad" style="padding:12px 2px"><button class="btn sec sm" id="delPlan">Delete this budget</button>
+       <p class="note">Deleting removes the plan and its targets. Overspend alerts fall back to your three-month averages.</p></div>`;
+  el.innerHTML = h;
+  const sm = $('#showMore');
+  if(sm) sm.onclick = () => { $('#moreCats').classList.remove('hide'); sm.remove(); };
+  $$('#secBudget .bpi').forEach(r => {
+    const open = () => editPlanItem(r.dataset.cat);
+    r.onclick = open;
+    r.onkeydown = e => { if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); open(); } };
+  });
+  const dp = $('#delPlan');
+  if(dp) dp.onclick = deletePlan;
+}
+
+/* A budget you cannot change is a trap, not a plan: it silently becomes the
+   basis for every overspend alert. Both editing a target and deleting the plan
+   are here so nothing about it is one-way. */
+function editPlanItem(categoryId){
+  const item = (F.planItems||[]).find(i => i.category_id === categoryId);
+  if(!item) return;
+  const c = F.catById[categoryId];
+  const label = c ? catLabel(c, F.catById) : 'Category';
+  $('#sheetBody').innerHTML = `
+    <div style="font-weight:800;font-size:19px;letter-spacing:-.02em;margin-bottom:14px">Target for ${esc(label)}</div>
+    <div class="f"><label for="tgtAmt">Monthly target</label>
+      <input id="tgtAmt" type="number" inputmode="decimal" min="0" step="50" value="${esc(String(Number(item.target_amount)||0))}"></div>
+    <div class="f"><label for="tgtBucket">Counts toward</label>
+      <select id="tgtBucket">${['need','want','save'].map(b =>
+        `<option value="${b}"${item.bucket===b?' selected':''}>${b}</option>`).join('')}</select></div>
+    <p class="note">“Need” is what the emergency-fund target is built from, so moving a category in or out of it changes how many months of cover you are aiming for.</p>
+    <button class="btn" id="tgtSave" style="margin-top:8px">Save</button>
+    <div id="tgtErr"></div>`;
+  $('#tgtSave').onclick = async () => {
+    const v = Number($('#tgtAmt').value);
+    if(!(v >= 0)) return err('#tgtErr','Enter an amount of zero or more.');
+    const b = $('#tgtBucket').value;
+    const btn = $('#tgtSave'); btn.disabled = true; btn.textContent = 'Saving…';
+    const {error} = await sb.from('budget_plan_items')
+      .update({target_amount:v, bucket:b}).eq('id', item.id);
+    btn.disabled = false; btn.textContent = 'Save';
+    if(error) return err('#tgtErr', error.message);
+    toggleSheet(false); await refresh(true);
+  };
+  toggleSheet(true);
+}
+
+async function deletePlan(){
+  if(!S.plan) return;
+  const btn = $('#delPlan');
+  // Two taps rather than a confirm() — a modal dialog would block the page.
+  if(btn.dataset.armed !== '1'){
+    btn.dataset.armed = '1';
+    btn.textContent = 'Tap again to delete';
+    setTimeout(() => { if(btn.isConnected && btn.dataset.armed === '1'){
+      btn.dataset.armed = ''; btn.textContent = 'Delete this budget'; } }, 5000);
+    return;
+  }
+  btn.disabled = true; btn.textContent = 'Deleting…';
+  // Items go first: budget_plan_items cascades on plan delete, but deleting it
+  // explicitly means a partial failure leaves nothing half-referenced.
+  const {error:ie} = await sb.from('budget_plan_items').delete().eq('plan_id', S.plan.id);
+  if(ie){ btn.disabled = false; btn.textContent = 'Delete this budget'; return err('#secBudget', ie.message); }
+  const {error:pe} = await sb.from('budget_plans').delete().eq('id', S.plan.id);
+  if(pe){ btn.disabled = false; btn.textContent = 'Delete this budget'; return err('#secBudget', pe.message); }
+  await refresh(true);
+}
+
+/** 50/30/20 seeded from the last three complete months, per category. */
+async function generateStarterPlan(){
+  const btn = $('#genPlan'); btn.disabled = true; btn.textContent = 'Generating…';
+  try{
+    const {data:plan, error:pe} = await sb.from('budget_plans').insert({
+      user_id:ME, name:'Starter budget', method:'hybrid', is_active:true,
+      notes:'Seeded from the last three complete months. Edit freely.'
+    }).select().single();
+    if(pe) throw pe;
+
+    // per-category average over the 3 complete months, from the same view the
+    // forecaster uses, so the plan and the alerts agree.
+    const items = [];
+    (S.trailing||[]).forEach(t => {
+      const c = F.catById[t.category_id];
+      if(!c || c.kind !== 'expense' || c.is_active === false) return;
+      const target = Math.round((Number(t.avg_monthly_fixed)||0) / 50) * 50;
+      if(target <= 0) return;
+      const ts = catTopSub(c, F.catById);
+      items.push({user_id:ME, plan_id:plan.id, category_id:t.category_id,
+                  bucket:resolveBucket(ts.top, ts.sub, null), target_amount:target});
+    });
+    if(items.length){
+      const {error:ie} = await sb.from('budget_plan_items').insert(items);
+      // Two inserts cannot be one transaction over PostgREST, so if the items
+      // fail we undo the plan by hand. Without this the empty plan survives,
+      // the single-active unique index blocks a retry, and the UI offers no way
+      // to remove it — the button becomes permanently broken.
+      if(ie){
+        await sb.from('budget_plans').delete().eq('id', plan.id);
+        throw ie;
+      }
+    }
+    await refresh(true);
+  }catch(e){
+    btn.disabled = false; btn.textContent = 'Generate a starter budget';
+    err('#secBudget', (e.message || 'Could not create the plan.') + ' Nothing was saved — you can try again.');
+  }
+}
+
+/* ---- recommendations ---- */
+function renderRecs(){
+  const el = $('#secRecs');
+  const stored = S.recs || [];
+  const byKey = {}; stored.forEach(r => byKey[r.dedup_key] = r);
+  // Merge freshly computed advice with what is stored, so a dismissed item
+  // never comes back and an unsaved one still renders.
+  const merged = [];
+  F.built.recs.forEach(r => {
+    const s = byKey[r.dedup_key];
+    if(s && s.status !== 'open') return;
+    merged.push(Object.assign({}, r, {id: s ? s.id : null, created_at: s ? s.created_at : new Date().toISOString()}));
+  });
+  const freshKeys = new Set(F.built.recs.map(r => r.dedup_key));
+  stored.filter(r => r.status === 'open' && !freshKeys.has(r.dedup_key)).forEach(r => merged.push(r));
+
+  RECS = sortRecs(merged);
+  const shown = RECS.slice(0, 12);
+  const dismissed = stored.filter(r => r.status === 'dismissed');
+
+  let h = '';
+  if(!shown.length){
+    h = `<div class="card"><div class="empty"><span class="big">✓</span>Nothing needs your attention right now.</div></div>`;
+  }else{
+    h = `<div class="card">` + shown.map(r => `
+      <div class="rec" data-key="${esc(r.dedup_key)}">
+        <span class="dot ${esc(r.severity)}" aria-hidden="true"></span>
+        <div><div class="t">${esc(r.title)}</div>
+          <div class="d">${esc(r.detail||'')}</div>
+          <div class="acts">
+            <button data-act="done" data-key="${esc(r.dedup_key)}">Done</button>
+            <button data-act="dismissed" data-key="${esc(r.dedup_key)}">Dismiss</button>
+          </div></div>
+      </div>`).join('') + `</div>`;
+    if(RECS.length > 12) h += `<p class="note">Showing 12 of ${RECS.length}. The rest are saved.</p>`;
+  }
+  if(dismissed.length){
+    h += `<div class="pad" style="padding:12px 0"><button class="btn sec sm" id="tglDismissed">${showDismissed?'Hide':'Show'} dismissed (${dismissed.length})</button></div>`;
+    if(showDismissed) h += `<div class="card">` + sortRecs(dismissed).map(r => `
+      <div class="rec done"><span class="dot ${esc(r.severity)}"></span>
+      <div><div class="t">${esc(r.title)}</div><div class="d">${esc(r.detail||'')}</div></div></div>`).join('') + `</div>`;
+  }
+  h += `<div id="recErr"></div>`;
+  el.innerHTML = h;
+  const tg = $('#tglDismissed');
+  if(tg) tg.onclick = () => { showDismissed = !showDismissed; renderRecs(); };
+  $$('#secRecs [data-act]').forEach(b => b.onclick = () => setRecStatus(b.dataset.key, b.dataset.act));
+}
+
+async function setRecStatus(key, status){
+  const node = document.querySelector(`#secRecs .rec[data-key="${CSS.escape(key)}"]`);
+  const parent = node ? node.parentNode : null, next = node ? node.nextSibling : null;
+  if(node) node.remove();                                   // optimistic
+  const patch = {status};
+  if(status === 'done') patch.resolved_at = new Date().toISOString();
+  let {error} = await sb.from('recommendations').update(patch).eq('user_id',ME).eq('dedup_key',key);
+  if(error && /0 rows|not found/i.test(error.message||'')) error = null;
+  if(error){
+    if(node && parent) parent.insertBefore(node, next);      // revert
+    err('#recErr', 'Could not update that: ' + error.message);
+    return;
+  }
+  const s = (S.recs||[]).find(r => r.dedup_key === key);
+  if(s){ s.status = status; }
+  else { S.recs.push({dedup_key:key, status, severity:'info', title:'', detail:''}); }
+  renderRecs();
+}
+
+/* ---- orchestration ---- */
+function renderAll(errors){
+  const map = {
+    secForecast: ['salary','txns','forecasts'],
+    secUpcoming: ['cards','recurringDue'],
+    secEf:       ['safetyNet','txns'],
+    secBudget:   ['plan','planItems','trailing'],
+    secRecs:     ['recs']
+  };
+  const renderers = {secForecast:renderForecast, secUpcoming:renderUpcoming,
+                     secEf:renderEf, secBudget:renderBudget, secRecs:renderRecs};
+  Object.keys(map).forEach(id => {
+    const bad = map[id].filter(k => errors[k]);
+    const el = document.getElementById(id);
+    if(bad.length){ el.innerHTML = sectionError(id, errors[bad[0]], id); return; }
+    try{ renderers[id](); }
+    catch(e){ el.innerHTML = sectionError(id, e.message || 'Something went wrong rendering this.', id); }
+  });
+  $$('[data-retry]').forEach(b => b.onclick = () => refresh(false));
+  const newest = (S.forecasts||[]).map(f => f.computed_at).filter(Boolean).sort().reverse()[0];
+  $('#stamp').textContent = newest
+    ? 'Last recalculated ' + new Date(newest).toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'})
+    : '';
+  $('#vsub').textContent = 'Looking at ' + monthLong(F.forMonth);
+}
+
+function showSkeletons(){
+  ['secForecast','secUpcoming','secEf','secBudget','secRecs']
+    .forEach(id => { document.getElementById(id).innerHTML = skeleton(3); });
+}
+
+async function refresh(force){
+  showSkeletons();
+  let errors = {};
+  try{ errors = await loadAll(); }
+  catch(e){ errors = {salary:e.message, cards:e.message, safetyNet:e.message, plan:e.message, recs:e.message}; }
+  try{ F = computeAll(); }
+  catch(e){
+    ['secForecast','secUpcoming','secEf','secBudget','secRecs'].forEach(id =>
+      { document.getElementById(id).innerHTML = sectionError(id, e.message || 'Could not compute.', id); });
+    $$('[data-retry]').forEach(b => b.onclick = () => refresh(false));
+    return;
+  }
+  renderAll(errors);
+  persist(force);                                            // fire and forget
+}
+
+/* ---------------- settings ---------------- */
+$('#settings').onclick = () => {
+  const cur = currentTheme();
+  $('#sheetBody').innerHTML = `
+    <div style="font-weight:800;font-size:19px;letter-spacing:-.02em;margin-bottom:4px">Appearance</div>
+    <div style="color:var(--faint);font-size:13px;margin-bottom:16px">Saved on this device only.</div>
+    <div class="modes">${Object.entries(THEMES).map(([k,v])=>`
+      <button class="mode" role="radio" aria-checked="${k===cur}" data-t="${esc(k)}">
+        <span class="sw" style="${SWATCH[k]||''}">${v.icon}</span>
+        <span><span class="nm">${esc(v.name)}</span><span class="ds">${esc(v.desc)}</span></span>
+        <span class="tick">✓</span>
+      </button>`).join('')}</div>
+    <button class="btn sec" id="shClose" style="margin-top:16px">Close</button>`;
+  $$('#sheetBody .mode').forEach(b => b.onclick = () => {
+    applyTheme(b.dataset.t);
+    $$('#sheetBody .mode').forEach(x => x.setAttribute('aria-checked', String(x === b)));
+  });
+  $('#shClose').onclick = () => toggleSheet(false);
+  toggleSheet(true);
+};
+$('#recalc').onclick = () => refresh(true);
+
+/* ---------------- boot ---------------- */
+// Storage can throw, not merely return null: Safari private mode, iOS with site
+// data blocked, and embedded webviews all raise on access. An unguarded read
+// here would kill the page before anything rendered — a blank screen with no
+// message. Degrade to "not configured" instead, which shows the setup card.
+function lsGet(k){ try{ return localStorage.getItem(k); }catch(_){ return null; } }
+function lsSet(k,v){ try{ localStorage.setItem(k,v); return true; }catch(_){ return false; } }
+function lsDel(k){ try{ localStorage.removeItem(k); }catch(_){} }
+
+function boot(){
+  applyTheme(currentTheme());
+  const url = lsGet(LS.url), key = lsGet(LS.key);
+  if(!url || !key){ $('#stepCfg').classList.remove('hide'); return; }
+  try { sb = supabase.createClient(url, key); }
+  catch(e){ $('#stepCfg').classList.remove('hide'); err('#cfgErr','That URL or key looks malformed.'); return; }
+  sb.auth.getSession().then(({data}) => {
+    if(data.session) start(); else $('#stepLogin').classList.remove('hide');
+  });
+}
+
+$('#saveCfg').onclick = () => {
+  const u = $('#url').value.trim().replace(/\/+$/,''), k = $('#key').value.trim();
+  if(!/^https:\/\/.+\.supabase\.co$/.test(u)) return err('#cfgErr','URL should look like https://xxxx.supabase.co');
+  // Supabase issues two generations of key. New projects: sb_publishable_… (safe)
+  // and sb_secret_… (must never reach a browser). Older projects: anon and
+  // service_role JWTs. Accept the safe one from either generation, refuse the other.
+  if(k.startsWith('sb_secret_'))
+    return err('#cfgErr','That is your secret key — it bypasses row-level security and must never go in a browser. Use the publishable key (sb_publishable_…).');
+  if(k.split('.').length===3){
+    try{ const p=JSON.parse(atob(k.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
+      if(p.role==='service_role') return err('#cfgErr','That is your service_role key — it bypasses row-level security and must never go in a browser. Use the anon / publishable key.');
+    }catch(_){}
+  }
+  const looksRight = k.startsWith('sb_publishable_') || k.split('.').length===3;
+  if(!looksRight || k.length < 30)
+    return err('#cfgErr','That does not look like a Supabase key. It should start with sb_publishable_ or eyJ.');
+  if(!lsSet(LS.url,u) || !lsSet(LS.key,k))
+    return err('#cfgErr','This browser is blocking site storage, so the connection cannot be saved. Allow site data for this page, or open it outside private browsing.');
+  $('#stepCfg').classList.add('hide'); boot();
+};
+$('#resetCfg').onclick = () => { lsDel(LS.url); lsDel(LS.key); location.reload(); };
+
+$('#doLogin').onclick = async () => {
+  err('#loginErr','');
+  const btn=$('#doLogin'); btn.disabled=true; btn.textContent='Signing in…';
+  const { error } = await sb.auth.signInWithPassword({ email:$('#em').value.trim(), password:$('#pw').value });
+  btn.disabled=false; btn.textContent='Sign in';
+  if(error) return err('#loginErr', error.message);
+  start();
+};
+
+async function start(){
+  const {data, error} = await sb.auth.getUser();
+  if(error || !data || !data.user){
+    $('#stepLogin').classList.remove('hide');
+    err('#loginErr','That session has expired. Sign in again.');
+    return;
+  }
+  ME = data.user.id;                       // never trusted from anywhere else
+  $('#gate').classList.add('hide');
+  $('#app').classList.remove('hide');
+  await refresh(false);
+}
+
+boot();
+})();
+</script>
+</body>
+</html>
