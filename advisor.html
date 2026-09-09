@@ -638,6 +638,20 @@ function projectCard(row){
    outright over the estimate, collapses the band to itself (there is no
    uncertainty in a number you have read off a statement), and is marked so the
    UI can show it as theirs rather than passing it off as a projection. */
+/* Same idea as applyOverride but for a whole forecast block (income,
+   discretionary) rather than one card. The user's figure becomes the estimate,
+   the band collapses to it, and what it replaced stays visible. */
+function applyForecastOverride(f, ov){
+  if(!f || !ov) return f;
+  const v = Number(ov.amount);
+  if(!(v >= 0)) return f;
+  return Object.assign({}, f, {
+    amount_expected:R2(v), amount_low:R2(v), amount_high:R2(v),
+    method:'override', confidence:'high',
+    overridden:true, estimate_was:f.amount_expected, override_note:ov.note || null
+  });
+}
+
 function applyOverride(proj, ov){
   if(!ov) return proj;
   const v = Number(ov.amount);
@@ -1093,7 +1107,7 @@ window.__khAdvisor = {
   forecastNet, resolveBucket, isMappedCategory, DEFAULT_BUCKETS, BUCKET_OVERRIDES,
   computeEssential, emergencyFund, suggestMonthsTarget, confidenceOf, thinDataGate,
   buildRecommendations, sortRecs, money, compact, esc,
-  applyOverride, overrideIndex, RENDER_CAP: 12
+  applyOverride, applyForecastOverride, overrideIndex, RENDER_CAP: 12
 };
 
 /* ============================================================================
@@ -1209,9 +1223,12 @@ function computeAll(){
   const ovIndex = overrideIndex(S.overrides, forMonth, today);
   const bills = computeBillsTotal({forMonth, cards:S.cards, recurring:S.recurringDue,
                                    overrides:ovIndex});
-  const disc  = forecastDiscretionary({monthly: win3.map(m => ({month:m, total:discByMonth[m]})),
-                                       txnCount: discTxnCount});
-  const net   = forecastNet(income, bills, disc);
+  const disc  = applyForecastOverride(
+    forecastDiscretionary({monthly: win3.map(m => ({month:m, total:discByMonth[m]})),
+                           txnCount: discTxnCount}),
+    ovIndex['discretionary:-']);
+  const income2 = applyForecastOverride(income, ovIndex['income:-']);
+  const net   = forecastNet(income2, bills, disc);
   const ef    = emergencyFund(S.safetyNet, win3.map(m => ({month:m, total:essByMonth[m]})));
 
   const categoryById = {};
@@ -1222,10 +1239,10 @@ function computeAll(){
     incomeProfile:S.incomeProfile, safetyNet:S.safetyNet, plan:S.plan, planItems,
     planItemByCategory, categoryById, trailing:S.trailing, mtdByCategory, mtdTotal,
     cards:S.cards, recurringAll:S.recurring, txns:S.txns,
-    income, bills, disc, net, ef
+    income:income2, bills, disc, net, ef
   });
 
-  return {today, forMonth, income, bills, disc, net, ef, built,
+  return {today, forMonth, income:income2, bills, disc, net, ef, built,
           catById, acctById, planItems, planItemByCategory, win3,
           discByMonth, essByMonth, mtdByCategory, mtdTotal,
           unclassifiedCount: unclassified.size};
@@ -1505,9 +1522,19 @@ function openForecastSheet(kind){
   if(kind === 'net'){
     body += `<p class="note">Income less card bills less day-to-day spend. The worst case pairs your leanest income month with your heaviest spend estimate; the best case does the reverse.</p>`;
   }
+  // Every figure on this page must be correctable from the page. Income had an
+  // editor but it was only reachable from the empty state, so the moment there
+  // was any data it became unreachable — the exact situation Pratham hit.
+  const editable = {income:'Edit my income', discretionary:'Set day-to-day spend',
+                    bills:'', net:''}[kind];
+  if(editable) body += `<button class="btn" id="shEdit" style="margin-top:14px">${esc(editable)}</button>`;
+  if(kind === 'bills') body += `<p class="note">Tap any card above to set what its bill actually is.</p>`;
+  if(kind === 'net') body += `<p class="note">Net is calculated, not stored — correct income, a card bill or day-to-day spend and this follows.</p>`;
   body += `<button class="btn sec" id="shClose" style="margin-top:14px">Close</button>`;
   $('#sheetBody').innerHTML = body;
   $('#shClose').onclick = () => toggleSheet(false);
+  const ed = $('#shEdit');
+  if(ed) ed.onclick = () => (kind === 'income' ? openIncomeSheet() : openDiscSheet());
   // card rows inside the bills sheet open the override editor
   $$('#sheetBody .ovr').forEach(r => {
     const open = () => openOverrideSheet(r.dataset.acct);
@@ -1635,6 +1662,53 @@ function openEfSheet(){
     }, {onConflict:'user_id'});
     btn.disabled = false; btn.textContent = 'Save';
     if(error) return err('#efErr', error.message);
+    toggleSheet(false); await refresh(true);
+  };
+  toggleSheet(true);
+}
+
+/* Day-to-day spend had no editor at all — it is derived from three months of
+   history, and if you know next month is different (a trip, a big purchase,
+   a quiet month) there was no way to say so. Same override machinery as cards,
+   scoped to the forecast month. */
+function openDiscSheet(){
+  const forMonth = F.forMonth;
+  const existing = (S.overrides||[]).find(o =>
+    o.kind === 'discretionary' && !o.ref_id && monthKey(o.for_month) === forMonth);
+  const est = F.disc && F.disc.amount_expected != null ? F.disc.amount_expected : 0;
+  $('#sheetBody').innerHTML = `
+    <div style="font-weight:800;font-size:19px;letter-spacing:-.02em;margin-bottom:2px">Day-to-day spend</div>
+    <div style="color:var(--faint);font-size:13px;margin-bottom:14px">For ${esc(monthName(forMonth))}</div>
+    <div class="f"><label for="dsAmt">What you expect to spend</label>
+      <input id="dsAmt" type="number" inputmode="decimal" min="0" step="100"
+             value="${esc(String(existing ? Number(existing.amount) : ''))}"
+             placeholder="${esc(String(Math.round(est)))}"></div>
+    <div class="f"><label for="dsNote">Note (optional)</label>
+      <input id="dsNote" type="text" maxlength="140" value="${esc(String(existing&&existing.note||''))}"
+             placeholder="e.g. Udaipur trip that month"></div>
+    <p class="note">Khaata estimates ${esc(money(est))} from your last three months. Your figure replaces it for ${esc(monthName(forMonth))} only — the month after goes back to the estimate.</p>
+    <button class="btn" id="dsSave" style="margin-top:8px">Save</button>
+    ${existing ? `<button class="btn sec" id="dsClear" style="margin-top:8px">Use the estimate instead</button>` : ''}
+    <div id="dsErr"></div>`;
+  $('#dsSave').onclick = async () => {
+    const raw = $('#dsAmt').value.trim(), v = Number(raw);
+    if(!(raw !== '' && v >= 0)) return err('#dsErr','Enter an amount, or tap “Use the estimate instead”.');
+    const b = $('#dsSave'); b.disabled = true; b.textContent = 'Saving…';
+    const {error} = await sb.from('forecast_overrides').upsert({
+      user_id:ME, kind:'discretionary', ref_id:null, for_month:forMonth+'-01',
+      amount:v, note:$('#dsNote').value.trim() || null,
+      expires_on:null, updated_at:new Date().toISOString()
+    }, {onConflict:'user_id,kind,ref_id,for_month'});
+    b.disabled = false; b.textContent = 'Save';
+    if(error) return err('#dsErr', error.message);
+    toggleSheet(false); await refresh(true);
+  };
+  const c = $('#dsClear');
+  if(c) c.onclick = async () => {
+    c.disabled = true;
+    const {error} = await sb.from('forecast_overrides').delete().eq('id', existing.id);
+    c.disabled = false;
+    if(error) return err('#dsErr', error.message);
     toggleSheet(false); await refresh(true);
   };
   toggleSheet(true);
