@@ -239,6 +239,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);
    than something that went wrong. */
 .nudge{background:var(--surface-2);color:var(--ink);border-left:3px solid var(--accent);
   padding:10px 13px;border-radius:8px;font-size:13px;margin-top:11px;font-weight:500}
+.amt.muted{color:var(--faint);font-weight:600}
 .empty{text-align:center;color:var(--faint);padding:40px 22px;font-size:14px;font-weight:500}
 .empty .big{display:block;font-size:30px;margin-bottom:10px;opacity:.5}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:11px}
@@ -698,32 +699,44 @@ function computeBillsTotal(opts){
   const nextCycle = cards.filter(c =>
     c.row.due_day != null &&
     !(c.row.next_due_date && monthKey(c.row.next_due_date) >= forMonth));
+  //   undated   — an active card with no statement or due day recorded. We
+  //               cannot say when it bills, so it contributes nothing on its
+  //               own. It is still listed, because a card you cannot see is a
+  //               card you cannot correct — and these are exactly the ones with
+  //               no parsed history, so they are the ones most likely wrong.
+  //               If the user states a figure, that figure counts in full.
+  const dated = new Set(inMonth.concat(nextCycle).map(c => c.row.account_id));
+  const undated = cards.filter(c => !dated.has(c.row.account_id));
+  const undatedTotal = undated.reduce((s,c)=> s + (c.proj.overridden ? c.proj.projected : 0), 0);
   const cardTotal = inMonth.reduce((s,c)=>s+c.proj.projected,0)
-                  + nextCycle.reduce((s,c)=>s+c.proj.projected,0);
+                  + nextCycle.reduce((s,c)=>s+c.proj.projected,0)
+                  + undatedTotal;
 
   const recur = (opts.recurring||[]).filter(r =>
     r.kind === 'expense' && num(r.amount_expected) !== null &&
     (!r.account_id || r.account_type !== 'credit_card'));
   const recurTotal = recur.reduce((s,r)=>s+Number(r.amount_expected),0);
 
-  if(!inMonth.length && !nextCycle.length && !recur.length)
+  if(!inMonth.length && !nextCycle.length && !undatedTotal && !recur.length)
     return {amount_expected:null, amount_low:null, amount_high:null,
             method:'insufficient_data', confidence:'none', basis_txn_count:0,
-            cards, inMonth, nextCycle:[], recurring:recur};
+            cards, inMonth, nextCycle:[], undated, recurring:recur};
 
   // A not-yet-started cycle is genuinely uncertain: floor it at zero rather
   // than at cycle-to-date, and widen the top instead of pretending to a cap.
   // An overridden card is a figure the user has read off a statement, so it
   // does not widen the band and does not count as an "estimated" card.
-  const low  = inMonth.reduce((s,c)=>s+c.proj.low ,0) + recurTotal;
+  // Stated figures are exact, so they enter both ends of the band unchanged.
+  const low  = inMonth.reduce((s,c)=>s+c.proj.low ,0) + undatedTotal + recurTotal;
   const high = inMonth.reduce((s,c)=>s+c.proj.high,0)
              + nextCycle.reduce((s,c)=>s + (c.proj.overridden
                  ? c.proj.high
                  : Math.max(c.proj.high, c.proj.projected*1.35)),0)
-             + recurTotal;
+             + undatedTotal + recurTotal;
   const anyLow = inMonth.some(c => c.proj.confidence === 'low' && !c.proj.overridden);
   const estimatedNext = nextCycle.filter(c => !c.proj.overridden).length;
-  const cardCount = inMonth.length + nextCycle.length;
+  const cardCount = inMonth.length + nextCycle.length + undated.filter(c=>c.proj.overridden).length;
+  const undatedUnset = undated.filter(c => !c.proj.overridden).length;
   return {
     amount_expected: R2(cardTotal + recurTotal),
     amount_low: R2(low), amount_high: R2(high),
@@ -734,7 +747,8 @@ function computeBillsTotal(opts){
     basis_txn_count: cardCount,
     estimated_cards: estimatedNext,
     overridden_cards: cards.filter(c => c.proj.overridden).length,
-    cards, inMonth, nextCycle, recurring: recur
+    undated_unset: undatedUnset,
+    cards, inMonth, nextCycle, undated, recurring: recur
   };
 }
 
@@ -1409,17 +1423,27 @@ function methodWords(kind, f){
    not correct is worse than no figure, because the only thing you can do about
    a wrong number is distrust the whole page. An overridden row says so, and
    shows what the estimate had been, so nothing is hidden by the correction. */
-function cardRow(c, when){
+function cardRow(c, when, notCounted){
   const ov = c.proj.overridden;
-  const sub = ov
-    ? when + ' · you set this' + (c.proj.estimate_was != null
-        ? ' · estimate was ' + money(c.proj.estimate_was) : '')
-    : when + ' · ' + String(c.proj.reason||'').replace(/_/g,' ');
+  let sub;
+  if(ov){
+    sub = when + ' · you set this' + (c.proj.estimate_was != null
+      ? ' · estimate was ' + money(c.proj.estimate_was) : '');
+  }else if(notCounted){
+    // Showing an amount beside "not counted" invites exactly the confusion this
+    // row exists to clear up. The dash says it is out of the total; the spend
+    // seen so far belongs in the explanation, not in the figure column.
+    sub = when + (Number(c.proj.projected) > 0
+      ? ' · ' + money(c.proj.projected) + ' spent so far' : '');
+  }else{
+    sub = when + ' · ' + String(c.proj.reason||'').replace(/_/g,' ');
+  }
+  const amt = (notCounted && !ov) ? '—' : money(c.proj.projected);
   return `<div class="frow ovr" data-acct="${esc(c.row.account_id)}" role="button" tabindex="0"
       aria-label="Set the bill for ${esc(c.row.account_name||'this card')}">
     <span><span class="nm">${esc(c.row.account_name||'Card')}${ov?' <span class="tag warn">set</span>':''}</span>
       <span class="sub">${esc(sub)} · tap to edit</span></span>
-    <span class="rt"><span class="amt num">${esc(money(c.proj.projected))}</span></span></div>`;
+    <span class="rt"><span class="amt num${(notCounted&&!ov)?' muted':''}">${esc(amt)}</span></span></div>`;
 }
 
 /* Editing a bill you have actually seen. Scoped to the card and the forecast
@@ -1433,6 +1457,7 @@ function openOverrideSheet(accountId){
     o.kind === 'card_bill' && String(o.ref_id) === String(accountId) &&
     monthKey(o.for_month) === forMonth);
   const est = entry.proj.overridden ? entry.proj.estimate_was : entry.proj.projected;
+  const noDates = entry.row.statement_day == null && entry.row.due_day == null;
   // default expiry: the card's due date in the forecast month, else month end
   const mStart = parseYmd(forMonth + '-01');
   const dim = daysInMonth(mStart);
@@ -1449,7 +1474,15 @@ function openOverrideSheet(accountId){
     <div class="f"><label for="ovNote">Note (optional)</label>
       <input id="ovNote" type="text" maxlength="140" value="${esc(String(existing&&existing.note||''))}"
              placeholder="e.g. statement came in higher"></div>
-    <p class="note">Khaata estimates ${esc(money(est||0))} from what has reached the ledger. Your figure replaces it for ${esc(monthName(forMonth))} and clears after ${esc(dateShort(expiry))}, so next month goes back to the live estimate.</p>
+    <div class="f"><label for="ovStmt">Statement day of the month (optional)</label>
+      <input id="ovStmt" type="number" inputmode="numeric" min="1" max="31" step="1"
+             value="${esc(String(entry.row.statement_day ?? ''))}"></div>
+    <div class="f"><label for="ovDue">Due day of the month (optional)</label>
+      <input id="ovDue" type="number" inputmode="numeric" min="1" max="31" step="1"
+             value="${esc(String(entry.row.due_day ?? ''))}"></div>
+    <p class="note">${noDates
+      ? 'This card has no billing dates recorded, so Khaata cannot work out when it bills and leaves it out of the total. Fill the two days above once and it forecasts on its own from next month.'
+      : 'Khaata estimates ' + esc(money(est||0)) + ' from what has reached the ledger. Your figure replaces it for ' + esc(monthName(forMonth)) + ' and clears after ' + esc(dateShort(expiry)) + ', so next month goes back to the live estimate.'}</p>
     <button class="btn" id="ovSave" style="margin-top:8px">Save</button>
     ${existing ? `<button class="btn sec" id="ovClear" style="margin-top:8px">Use the estimate instead</button>` : ''}
     <div id="ovErr"></div>`;
@@ -1457,7 +1490,18 @@ function openOverrideSheet(accountId){
   $('#ovSave').onclick = async () => {
     const v = Number($('#ovAmt').value);
     if(!($('#ovAmt').value.trim() !== '' && v >= 0)) return err('#ovErr','Enter the amount, or tap “Use the estimate instead”.');
+    const sd = $('#ovStmt').value.trim() === '' ? null : Number($('#ovStmt').value);
+    const dd = $('#ovDue').value.trim()  === '' ? null : Number($('#ovDue').value);
+    for(const [lbl,d] of [['Statement',sd],['Due',dd]])
+      if(d !== null && !(d >= 1 && d <= 31)) return err('#ovErr', lbl+' day must be between 1 and 31.');
     const b = $('#ovSave'); b.disabled = true; b.textContent = 'Saving…';
+    // Billing days live on the account, not the override: they are a standing
+    // fact about the card, not a one-month correction.
+    if(sd !== entry.row.statement_day || dd !== entry.row.due_day){
+      const {error:ae} = await sb.from('accounts')
+        .update({statement_day:sd, due_day:dd}).eq('id', accountId);
+      if(ae){ b.disabled = false; b.textContent = 'Save'; return err('#ovErr', ae.message); }
+    }
     const {error} = await sb.from('forecast_overrides').upsert({
       user_id:ME, kind:'card_bill', ref_id:accountId, for_month:forMonth+'-01',
       amount:v, note:$('#ovNote').value.trim() || null, expires_on:expiry,
@@ -1507,10 +1551,11 @@ function openForecastSheet(kind){
       // total, so they must be in the breakdown — otherwise the hero reads
       // ₹65,000 and this list adds up to ₹20,000.
       (F.bills.nextCycle||[]).map(c => cardRow(c, 'next cycle' + (c.row.due_day ? ', due around day '+c.row.due_day : ''))).join('') +
+      (F.bills.undated||[]).map(c => cardRow(c, 'no billing dates set', !c.proj.overridden)).join('') +
       (F.bills.recurring||[]).map(r => `<div class="frow"><span><span class="nm">${esc(r.name)}</span>
         <span class="sub">recurring, not on a card</span></span>
         <span class="rt"><span class="amt num">${esc(money(Number(r.amount_expected)||0))}</span></span></div>`).join('') +
-      `</div>${(F.bills.estimated_cards||0) ? `<div class="nudge">${F.bills.estimated_cards} of these ${F.bills.estimated_cards===1?'is a card whose':'are cards whose'} next bill covers a cycle that has not been spent yet, so ${F.bills.estimated_cards===1?'it is':'they are'} estimated from current spending. Treat the total as a guide, not a statement.</div>` : ''}` +
+      `</div>${(F.bills.undated_unset||0) ? `<div class="nudge">${F.bills.undated_unset} card${F.bills.undated_unset===1?' has':'s have'} no statement or due date recorded, so ${F.bills.undated_unset===1?'it is':'they are'} not in the total. Tap ${F.bills.undated_unset===1?'it':'them'} to enter the bill, and set the dates while you are there so future months forecast on their own.</div>` : ''}${(F.bills.estimated_cards||0) ? `<div class="nudge">${F.bills.estimated_cards} of these ${F.bills.estimated_cards===1?'is a card whose':'are cards whose'} next bill covers a cycle that has not been spent yet, so ${F.bills.estimated_cards===1?'it is':'they are'} estimated from current spending. Treat the total as a guide, not a statement.</div>` : ''}` +
       `<p class="note">Recurring items charged to a credit card are left out here — they are already inside that card’s cycle spend.</p>`;
   }
   if(kind === 'discretionary'){
@@ -1528,6 +1573,11 @@ function openForecastSheet(kind){
   const editable = {income:'Edit my income', discretionary:'Set day-to-day spend',
                     bills:'', net:''}[kind];
   if(editable) body += `<button class="btn" id="shEdit" style="margin-top:14px">${esc(editable)}</button>`;
+  // A recurring salary and a one-off month are different facts. Baking a bonus
+  // into the monthly figure makes every future month inherit a bonus that isn't
+  // coming, so the one-month figure gets its own door.
+  if(kind === 'income') body += `<button class="btn sec" id="shEditMonth" style="margin-top:8px">Set ${esc(monthName(F.forMonth))} only</button>
+    <p class="note">Use the second one for a month with a bonus, arrears or an allowance in it — it applies to ${esc(monthName(F.forMonth))} and nothing after.</p>`;
   if(kind === 'bills') body += `<p class="note">Tap any card above to set what its bill actually is.</p>`;
   if(kind === 'net') body += `<p class="note">Net is calculated, not stored — correct income, a card bill or day-to-day spend and this follows.</p>`;
   body += `<button class="btn sec" id="shClose" style="margin-top:14px">Close</button>`;
@@ -1535,6 +1585,8 @@ function openForecastSheet(kind){
   $('#shClose').onclick = () => toggleSheet(false);
   const ed = $('#shEdit');
   if(ed) ed.onclick = () => (kind === 'income' ? openIncomeSheet() : openDiscSheet());
+  const edm = $('#shEditMonth');
+  if(edm) edm.onclick = () => openIncomeMonthSheet();
   // card rows inside the bills sheet open the override editor
   $$('#sheetBody .ovr').forEach(r => {
     const open = () => openOverrideSheet(r.dataset.acct);
@@ -1709,6 +1761,55 @@ function openDiscSheet(){
     const {error} = await sb.from('forecast_overrides').delete().eq('id', existing.id);
     c.disabled = false;
     if(error) return err('#dsErr', error.message);
+    toggleSheet(false); await refresh(true);
+  };
+  toggleSheet(true);
+}
+
+/* One month's income, not the recurring figure. Pratham's October is base plus a
+   yearly bonus plus a pending allowance — three facts, only one of which repeats.
+   The schema and the forecast maths already supported this; the editor was the
+   missing piece. */
+function openIncomeMonthSheet(){
+  const forMonth = F.forMonth;
+  const existing = (S.overrides||[]).find(o =>
+    o.kind === 'income' && !o.ref_id && monthKey(o.for_month) === forMonth);
+  const base = F.income && F.income.overridden
+    ? F.income.estimate_was
+    : (F.income ? F.income.amount_expected : null);
+  $('#sheetBody').innerHTML = `
+    <div style="font-weight:800;font-size:19px;letter-spacing:-.02em;margin-bottom:2px">Income for ${esc(monthName(forMonth))}</div>
+    <div style="color:var(--faint);font-size:13px;margin-bottom:14px">This month only</div>
+    <div class="f"><label for="imAmt">Total landing this month</label>
+      <input id="imAmt" type="number" inputmode="decimal" min="0" step="500"
+             value="${esc(String(existing ? Number(existing.amount) : ''))}"
+             placeholder="${esc(String(Math.round(base||0)))}"></div>
+    <div class="f"><label for="imNote">What makes it different (optional)</label>
+      <input id="imNote" type="text" maxlength="140" value="${esc(String(existing&&existing.note||''))}"
+             placeholder="e.g. base + yearly bonus + night shift allowance"></div>
+    <p class="note">Your usual figure is ${esc(money(base||0))}. This replaces it for ${esc(monthName(forMonth))} alone — the recurring amount is untouched, so following months go back to normal.</p>
+    <button class="btn" id="imSave" style="margin-top:8px">Save</button>
+    ${existing ? `<button class="btn sec" id="imClear" style="margin-top:8px">Use my usual income instead</button>` : ''}
+    <div id="imErr"></div>`;
+  $('#imSave').onclick = async () => {
+    const raw = $('#imAmt').value.trim(), v = Number(raw);
+    if(!(raw !== '' && v >= 0)) return err('#imErr','Enter the amount, or tap “Use my usual income instead”.');
+    const b = $('#imSave'); b.disabled = true; b.textContent = 'Saving…';
+    const {error} = await sb.from('forecast_overrides').upsert({
+      user_id:ME, kind:'income', ref_id:null, for_month:forMonth+'-01',
+      amount:v, note:$('#imNote').value.trim() || null,
+      expires_on:null, updated_at:new Date().toISOString()
+    }, {onConflict:'user_id,kind,ref_id,for_month'});
+    b.disabled = false; b.textContent = 'Save';
+    if(error) return err('#imErr', error.message);
+    toggleSheet(false); await refresh(true);
+  };
+  const c = $('#imClear');
+  if(c) c.onclick = async () => {
+    c.disabled = true;
+    const {error} = await sb.from('forecast_overrides').delete().eq('id', existing.id);
+    c.disabled = false;
+    if(error) return err('#imErr', error.message);
     toggleSheet(false); await refresh(true);
   };
   toggleSheet(true);
@@ -2040,6 +2141,19 @@ function renderNotes(){
     $('#noteBody').value = '';
     S.notes = [data].concat(S.notes||[]);
     renderNotes();
+    // The row is saved; email is delivery on top. If the relay is not set up or
+    // fails, say so precisely rather than implying the note was lost.
+    try{
+      const r = await fetch('/api/send-note', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({body, context:noteContext()})
+      });
+      const j = await r.json().catch(()=>({}));
+      if(j && j.sent) saveChip('Saved and emailed to Claude');
+      else saveChip('Saved. Email relay off — Claude reads it from the app.');
+    }catch(_){
+      saveChip('Saved. Could not email it just now.');
+    }
   };
   $$('#secNotes [data-del]').forEach(x => x.onclick = async () => {
     const id = x.dataset.del;
