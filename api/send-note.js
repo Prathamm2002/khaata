@@ -9,7 +9,10 @@
  *
  * Environment variables (set in Vercel -> Settings -> Environment Variables):
  *   RESEND_API_KEY   an API key from resend.com (free tier is plenty)
- *   KHAATA_NOTE_TO   where notes go, e.g. pratham.m2k@gmail.com
+ *   KHAATA_NOTE_TO   the COLLECTOR inbox, khaata.ledger@gmail.com — not a
+ *                    personal address. Two reasons: the collector is the
+ *                    mailbox Claude's Gmail connector actually reads, and the
+ *                    personal inbox is deliberately kept clear of this traffic.
  *   KHAATA_NOTE_FROM optional; defaults to Resend's shared onboarding sender,
  *                    which works without verifying a domain
  *
@@ -82,6 +85,11 @@ export default async function handler(req, res) {
         // The subject is the search handle: "Khaata note" is what Claude looks
         // for, so keep the prefix stable even if the rest changes.
         subject: 'Khaata note — ' + noteBody.slice(0, 60).replace(/\s+/g, ' '),
+        // The collector also feeds the 6 AM transaction parser, which matches on
+        // a list of bank senders. A note is not from one of those, so it is
+        // already ignored there — this header makes the distinction explicit
+        // rather than incidental, for filters and for anything reading later.
+        headers: { 'X-Khaata-Kind': 'advisor-note' },
         text
       })
     });
