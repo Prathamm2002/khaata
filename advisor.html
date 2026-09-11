@@ -341,8 +341,12 @@ h2:first-child{margin-top:2px}
 .mode .tick{color:var(--accent);font-weight:800;font-size:17px;opacity:0}
 .mode[aria-checked=true] .tick{opacity:1}
 .savechip{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + var(--safe-b));
-  z-index:70;background:var(--warn-bg);color:var(--warn-ink);padding:9px 14px;border-radius:99px;
-  font-size:12.5px;font-weight:700;box-shadow:var(--sh-2)}
+  z-index:70;background:var(--warn-bg);color:var(--warn-ink);padding:9px 14px;border-radius:16px;
+  font-size:12.5px;font-weight:700;box-shadow:var(--sh-2);
+  /* it now carries the database's own words, which can be long: wrap rather
+     than stretch a pill off both edges of a phone */
+  max-width:min(92vw,520px);text-align:center;line-height:1.4;
+  overflow-wrap:anywhere}
 </style>
 </head>
 <body>
@@ -1337,7 +1341,13 @@ async function persist(force){
     S.forecasts = rows;
     try{ localStorage.setItem(LAST_PERSIST, String(Date.now())); }catch(_){}
   }catch(e){
-    saveChip('Couldn’t save — showing live numbers');
+    // Swallowing the reason here cost a round trip: the page said "couldn't
+    // save" while the database was plainly telling us the method value was not
+    // allowed. Show what it said. The numbers on screen are still correct --
+    // they are computed live -- so this is about the save, not the display.
+    const why = (e && (e.message || e.hint || e.details)) ? String(e.message || e.hint || e.details) : '';
+    saveChip('Couldn’t save — showing live numbers' + (why ? ': ' + why : ''));
+    if(window.console && console.warn) console.warn('[khaata] forecast persist failed', e);
   }
 }
 
